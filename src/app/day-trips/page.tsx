@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { placeById } from "@/data/places";
 import PlaceCard from "@/components/PlaceCard";
+import DayTripOutsideCard from "@/components/DayTripOutsideCard";
 
 export const metadata = { title: "Day Trips" };
 
@@ -28,23 +29,7 @@ export default function DayTripsPage() {
         </p>
         <div className="mt-2 space-y-3">
           {outside.map((p) => (
-            <div key={p!.id} className="card p-4">
-              <div className="flex items-start justify-between gap-2">
-                <Link href={`/places/${p!.id}`} className="font-semibold hover:underline">
-                  {p!.name}
-                </Link>
-                <span className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: "var(--terracotta-light)", color: "var(--terracotta)" }}>
-                  Outside Istanbul
-                </span>
-              </div>
-              <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>{p!.summary}</p>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs" style={{ color: "var(--muted)" }}>
-                <p>🚗 {p!.transport[0]?.detail}</p>
-                <p>⏱️ {p!.transport[0]?.duration ?? p!.duration}</p>
-                <p>👨‍👩‍👧 {p!.family.level} with kids</p>
-                <p>🗓️ {p!.duration}</p>
-              </div>
-            </div>
+            <DayTripOutsideCard key={p!.id} place={p!} />
           ))}
         </div>
       </section>

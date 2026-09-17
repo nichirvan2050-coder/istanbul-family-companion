@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Place } from "@/data/types";
+import { localizePlace } from "@/data/placeTranslations";
 import FamilyBadge from "./FamilyBadge";
 import { useLocale } from "@/lib/i18n";
 import { formatDistance } from "@/lib/geo";
@@ -19,8 +20,9 @@ const categoryEmoji: Record<string, string> = {
   viewpoint: "🔭",
 };
 
-export default function PlaceCard({ place, distanceKm }: { place: Place; distanceKm?: number }) {
-  const { t } = useLocale();
+export default function PlaceCard({ place: rawPlace, distanceKm }: { place: Place; distanceKm?: number }) {
+  const { t, locale } = useLocale();
+  const place = localizePlace(rawPlace, locale);
   const emoji = categoryEmoji[place.category[0]] ?? "📍";
   return (
     <Link

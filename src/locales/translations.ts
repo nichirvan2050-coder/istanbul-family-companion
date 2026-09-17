@@ -8,10 +8,12 @@ export const localeMeta: Record<Locale, { label: string; dir: "ltr" | "rtl" }> =
 
 type Dict = Record<string, string>;
 
-// Scope note: this covers the app's navigation, homepage, and every page's
-// title/intro — the chrome a family actually navigates by. Deep content
-// (place history, itinerary detail, Turkish phrase data) stays English in
-// this pass; translating ~35 place records is a larger follow-up.
+// Scope note: covers the app's navigation, page titles/intros, and the
+// place-detail page's section labels. The actual place content (name,
+// summary, history, etc.) is translated per-place in ./placeTranslations.ts
+// and merged in at render time — a place missing from that file falls back
+// to English. Itinerary-day and Turkish-phrase deep content is still
+// English-only.
 const en: Dict = {
   nav_home: "Home",
   nav_plan: "Plan",
@@ -61,6 +63,33 @@ const en: Dict = {
   common_listen: "Listen",
   common_free: "Free",
   common_paid: "Paid",
+
+  place_all_places: "All places",
+  place_location: "📍 Location",
+  place_what_is_it: "🏛️ What is it?",
+  place_history: "📖 History",
+  place_timeline: "🕰️ Timeline",
+  place_why_visit: "⭐ Why visit?",
+  place_time_needed: "⏱️ Time needed",
+  place_entrance: "🎟️ Entrance",
+  place_opening_hours: "🕐 Opening hours",
+  place_family: "👨‍👩‍👧 Family",
+  place_family_stroller: "🧸 Stroller:",
+  place_family_toilets: "🚻 Toilets:",
+  place_family_seating: "💺 Seating:",
+  place_family_walking: "🚶 Walking:",
+  place_family_crowd: "👥 Crowd:",
+  place_family_shade: "☀️ Shade:",
+  place_dont_miss: "📸 Don't miss",
+  place_how_to_get_there: "🚋 How to get there",
+  place_with_child_nearby: "👨‍👩‍👧 With a child nearby",
+  place_nearby: "📍 Nearby",
+  place_map: "🗺️ Map",
+  place_open_in_maps: "Open in Google Maps",
+  place_official: "🔗 Official",
+  place_evidence: "Evidence",
+
+  daytrip_outside_istanbul: "Outside Istanbul",
 };
 
 const ar: Dict = {
@@ -114,6 +143,33 @@ const ar: Dict = {
   common_listen: "استماع",
   common_free: "مجاني",
   common_paid: "مدفوع",
+
+  place_all_places: "كل الأماكن",
+  place_location: "📍 الموقع",
+  place_what_is_it: "🏛️ ما هو؟",
+  place_history: "📖 التاريخ",
+  place_timeline: "🕰️ الجدول الزمني",
+  place_why_visit: "⭐ لماذا تزوره؟",
+  place_time_needed: "⏱️ الوقت اللازم",
+  place_entrance: "🎟️ الدخول",
+  place_opening_hours: "🕐 ساعات العمل",
+  place_family: "👨‍👩‍👧 العائلة",
+  place_family_stroller: "🧸 عربة الأطفال:",
+  place_family_toilets: "🚻 دورات المياه:",
+  place_family_seating: "💺 أماكن الجلوس:",
+  place_family_walking: "🚶 المشي:",
+  place_family_crowd: "👥 الازدحام:",
+  place_family_shade: "☀️ الظل:",
+  place_dont_miss: "📸 لا تفوّت",
+  place_how_to_get_there: "🚋 كيف تصل",
+  place_with_child_nearby: "👨‍👩‍👧 مع طفل بالقرب",
+  place_nearby: "📍 بالقرب",
+  place_map: "🗺️ الخريطة",
+  place_open_in_maps: "فتح في خرائط جوجل",
+  place_official: "🔗 الموقع الرسمي",
+  place_evidence: "المصادر",
+
+  daytrip_outside_istanbul: "خارج إسطنبول",
 };
 
 const ku: Dict = {
@@ -167,6 +223,33 @@ const ku: Dict = {
   common_listen: "گوێگرتن",
   common_free: "بەخۆڕایی",
   common_paid: "بەپارە",
+
+  place_all_places: "هەموو شوێنەکان",
+  place_location: "📍 شوێن",
+  place_what_is_it: "🏛️ ئەمە چییە؟",
+  place_history: "📖 مێژوو",
+  place_timeline: "🕰️ هێڵی کات",
+  place_why_visit: "⭐ بۆچی سەردانی بکەیت؟",
+  place_time_needed: "⏱️ کاتی پێویست",
+  place_entrance: "🎟️ چوونەژوورەوە",
+  place_opening_hours: "🕐 کاتەکانی کردنەوە",
+  place_family: "👨‍👩‍👧 خێزان",
+  place_family_stroller: "🧸 عەرەبانەی منداڵ:",
+  place_family_toilets: "🚻 تواڵێت:",
+  place_family_seating: "💺 جێگای دانیشتن:",
+  place_family_walking: "🚶 پیادەڕۆیی:",
+  place_family_crowd: "👥 قەرەباڵغی:",
+  place_family_shade: "☀️ سێبەر:",
+  place_dont_miss: "📸 لەبیرت نەچێت",
+  place_how_to_get_there: "🚋 چۆن بگەیت",
+  place_with_child_nearby: "👨‍👩‍👧 لەگەڵ منداڵ لە نزیکەوە",
+  place_nearby: "📍 لە نزیکەوە",
+  place_map: "🗺️ نەخشە",
+  place_open_in_maps: "کردنەوە لە گووگڵ مافس",
+  place_official: "🔗 فەرمی",
+  place_evidence: "سەرچاوەکان",
+
+  daytrip_outside_istanbul: "دەرەوەی ئیستەنبوڵ",
 };
 
 export const translations: Record<Locale, Dict> = { en, ar, ku };

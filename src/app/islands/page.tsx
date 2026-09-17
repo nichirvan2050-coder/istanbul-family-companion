@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { placeById } from "@/data/places";
+import { localizePlace } from "@/data/placeTranslations";
 import PlaceCard from "@/components/PlaceCard";
+import { useLocale } from "@/lib/i18n";
 
 const islandIds = ["buyukada", "heybeliada", "burgazada", "kinaliada"];
 
@@ -15,9 +17,15 @@ const comparison = [
 ];
 
 export default function IslandsPage() {
+  const { locale } = useLocale();
   const [selected, setSelected] = useState<string | null>(null);
-  const island = selected ? placeById(selected) : null;
+  const rawIsland = selected ? placeById(selected) : null;
+  const island = rawIsland ? localizePlace(rawIsland, locale) : null;
   const islands = islandIds.map((id) => placeById(id)).filter(Boolean);
+  const nameFor = (id: string) => {
+    const p = placeById(id);
+    return p ? localizePlace(p, locale).name : "";
+  };
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
@@ -55,7 +63,7 @@ export default function IslandsPage() {
             <tbody>
               {comparison.map((row) => (
                 <tr key={row.id} className="border-t align-top" style={{ borderColor: "var(--border)" }}>
-                  <td className="py-2 pr-2 font-medium">{placeById(row.id)?.name}</td>
+                  <td className="py-2 pr-2 font-medium">{nameFor(row.id)}</td>
                   <td className="py-2 pr-2" style={{ color: "var(--muted)" }}>{row.character}</td>
                   <td className="py-2 pr-2" style={{ color: "var(--muted)" }}>{row.nature}</td>
                   <td className="py-2 pr-2" style={{ color: "var(--muted)" }}>{row.beaches}</td>
@@ -81,7 +89,7 @@ export default function IslandsPage() {
               className="rounded-full border px-3 py-1.5 text-sm"
               style={{ borderColor: "var(--border)", background: selected === id ? "var(--bosphorus)" : "transparent", color: selected === id ? "white" : "var(--foreground)" }}
             >
-              {placeById(id)?.name}
+              {nameFor(id)}
             </button>
           ))}
         </div>
@@ -97,8 +105,9 @@ export default function IslandsPage() {
               <p className="text-sm">{island.whyVisit[0]}</p>
             </li>
             {island.nearby.slice(0, 2).map((id) => {
-              const sub = placeById(id);
-              if (!sub) return null;
+              const rawSub = placeById(id);
+              if (!rawSub) return null;
+              const sub = localizePlace(rawSub, locale);
               return (
                 <li key={id}>
                   <Link href={`/places/${sub.id}`} className="text-sm underline" style={{ color: "var(--bosphorus)" }}>
