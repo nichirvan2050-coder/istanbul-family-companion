@@ -9,7 +9,7 @@ export interface TransportLine {
 }
 
 export interface TransportMode {
-  id: "tram" | "metro" | "marmaray" | "ferry" | "bus" | "taxi";
+  id: "tram" | "metro" | "marmaray" | "ferry" | "funicular" | "bus" | "taxi";
   title: string;
   icon: string;
   summary: string;
@@ -42,11 +42,29 @@ export const transportModes: TransportMode[] = [
     summary: "Fast, air-conditioned, and useful for reaching Taksim/Beyoğlu and the airports, less central to the historic peninsula itself.",
     lines: [
       { name: "M2 (Yenikapı ↔ Hacıosman)", usefulFor: "Taksim and Şişli; connects to Yenikapı for Marmaray/other lines", keyStops: ["Taksim", "Şişhane (for Galata)", "Osmanbey", "Yenikapı"] },
+      { name: "M4 (Kadıköy ↔ Sabiha Gökçen Airport)", usefulFor: "Kadıköy and the Asian side south toward Kartal/Pendik and Sabiha Gökçen Airport", keyStops: ["Kadıköy"] },
+      { name: "M5 (Üsküdar ↔ Çekmeköy)", usefulFor: "Üsküdar and inland Asian-side districts (Altunizade, Ümraniye)", keyStops: ["Üsküdar"] },
       { name: "M11", usefulFor: "Istanbul Airport (IST) connection", keyStops: ["Istanbul Airport", "Gayrettepe (interchange)"] },
     ],
     notes: [
       "The historic peninsula (Sultanahmet, Eminönü) is not directly served by metro — use the T1 tram or Marmaray instead.",
+      "M4 and M5 are separate Asian-side lines that don't physically connect to the European-side M2/M11 network — cross via Marmaray or ferry, not by staying on the metro.",
       "Interchange stations can involve a fair amount of walking between platforms.",
+    ],
+  },
+  {
+    id: "funicular",
+    title: "Funicular",
+    icon: "🚡",
+    summary: "Short, steep-hill shortcuts — mainly useful for skipping the climb between Karaköy/Kabataş and Beyoğlu/Taksim.",
+    lines: [
+      { name: "F2 / Tünel (Karaköy ↔ Beyoğlu)", usefulFor: "Skipping the steep walk up from Karaköy to İstiklal Street", keyStops: ["Karaköy", "Tünel Square"] },
+      { name: "F1 (Kabataş ↔ Taksim)", usefulFor: "Connecting the T1 tram at Kabataş to the M2 metro and Taksim Square", keyStops: ["Kabataş", "Taksim"] },
+      { name: "F4 (Boğaziçi Üniversitesi/Hisarüstü ↔ Aşiyan)", usefulFor: "Reaching the Bebek/Rumeli Fortress area from the hilltop Boğaziçi University campus", keyStops: ["Aşiyan"] },
+    ],
+    notes: [
+      "F2/Tünel, opened in 1875, is the second-oldest underground urban rail line in the world after London's.",
+      "F1 is a modern addition (2006), distinct from the historic Tünel.",
     ],
   },
   {
@@ -191,6 +209,25 @@ export const fareTable: FareRow[] = [
     fare: "≈ 49 TRY",
     fareType: "Standard single-journey fare",
     notes: "",
+    sourceName: "Şehir Hatları",
+    sourceUrl: "https://www.sehirhatlari.istanbul/",
+    status: "check",
+  },
+  {
+    transport: "Ferry — Beşiktaş ↔ Kadıköy",
+    fare: "≈ 39 TRY",
+    fareType: "Standard single-journey fare",
+    notes: "",
+    sourceName: "Şehir Hatları",
+    sourceUrl: "https://www.sehirhatlari.istanbul/",
+    status: "check",
+  },
+  {
+    transport: "Ferry — Kabataş ↔ Adalar (Princes' Islands)",
+    fare: "≈ 206 TRY",
+    fareType: "Dedicated island line — NOT a standard city fare",
+    notes:
+      "Much more expensive than a normal Bosphorus/city ferry crossing — this is a separate, longer scenic line out to the islands, not the short Eminönü/Üsküdar/Kadıköy hops above. Some sources instead list an 'Adakartsız' Adalar-lines fare around 137 TRY, which may reflect a different fare category (e.g. a shorter inter-island hop) rather than the full Kabataş↔Adalar run — treat the exact figure as unconfirmed and check the posted fare board before boarding.",
     sourceName: "Şehir Hatları",
     sourceUrl: "https://www.sehirhatlari.istanbul/",
     status: "check",

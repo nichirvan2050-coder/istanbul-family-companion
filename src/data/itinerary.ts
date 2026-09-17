@@ -158,7 +158,7 @@ export const itinerary: ItineraryDay[] = [
         type: "note",
         label: "Choosing how to see the Bosphorus today",
         detail:
-          "Public ferry (Şehir Hatları): cheaper, uses Istanbulkart, runs a fixed route/timetable, no narration. Dedicated Bosphorus cruise: usually longer, may include narration and stop at more villages, separately priced and not run by the public transit operator. Neither is presented here as the 'best' choice — pick based on time, budget, and whether you want a fixed schedule or a longer scenic tour.",
+          "Public 'Boğaz Hattı' round-trip ferry (Şehir Hatları, Eminönü ↔ Anadolu Kavağı): cheaper, uses Istanbulkart, runs a fixed route on a limited daily timetable, no narration. Dedicated private Bosphorus cruise: usually shorter/more flexible in timing, may include narration, separately priced and not run by the public transit operator. Neither is presented here as the 'best' choice — pick based on time, budget, and whether you want a fixed schedule or a shorter tour. (This is unrelated to the much pricier Kabataş↔Adalar ferry, which goes to the Princes' Islands, not along the Bosphorus.)",
       },
       { time: "10:30", type: "place", placeId: "bosphorus" },
       { time: "12:00", type: "place", placeId: "rumeli-fortress", detail: "Steep interior paths — pace with kids." },

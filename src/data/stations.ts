@@ -33,6 +33,12 @@ export const stations: Station[] = [
   { id: "m2-levent", name: "Levent", modes: ["metro"], lines: ["M2"], coordinates: { lat: 41.0819, lng: 29.0128 }, district: "Beşiktaş", area: "Levent" },
   { id: "m2-hacıosman", name: "Hacıosman", modes: ["metro"], lines: ["M2"], coordinates: { lat: 41.1092, lng: 29.0269 }, district: "Sarıyer", area: "Hacıosman" },
 
+  // ───────── M4 Metro (Kadıköy ↔ Sabiha Gökçen Airport, Asian side) ─────────
+  { id: "m4-kadikoy", name: "Kadıköy (M4)", modes: ["metro"], lines: ["M4"], coordinates: { lat: 40.9925, lng: 29.0244 }, district: "Kadıköy", area: "Kadıköy", interchange: ["ferry-kadikoy"] },
+
+  // ───────── M5 Metro (Üsküdar ↔ Çekmeköy, Asian side) ─────────
+  { id: "m5-uskudar", name: "Üsküdar (M5)", modes: ["metro"], lines: ["M5"], coordinates: { lat: 41.0233, lng: 29.0144 }, district: "Üsküdar", area: "Üsküdar", interchange: ["marmaray-uskudar", "ferry-uskudar"] },
+
   // ───────── M1 Metro (Yenikapı ↔ Airport/Kirazlı, western districts) ─────────
   { id: "m1-yenikapi", name: "Yenikapı", modes: ["metro"], lines: ["M1"], coordinates: { lat: 41.0044, lng: 28.9508 }, district: "Fatih", area: "Yenikapı" },
   { id: "m1-aksaray", name: "Aksaray", modes: ["metro"], lines: ["M1"], coordinates: { lat: 41.0111, lng: 28.9489 }, district: "Fatih", area: "Aksaray" },
@@ -42,7 +48,7 @@ export const stations: Station[] = [
 
   // ───────── Marmaray (Halkalı ↔ Gebze, Europe–Asia undersea crossing) ─────────
   { id: "marmaray-sirkeci", name: "Sirkeci", modes: ["marmaray"], lines: ["Marmaray"], coordinates: { lat: 41.0136, lng: 28.9775 }, district: "Fatih", area: "Sirkeci" },
-  { id: "marmaray-uskudar", name: "Üsküdar", modes: ["marmaray", "ferry"], lines: ["Marmaray"], coordinates: { lat: 41.0233, lng: 29.0144 }, district: "Üsküdar", area: "Üsküdar", interchange: ["ferry-uskudar"] },
+  { id: "marmaray-uskudar", name: "Üsküdar", modes: ["marmaray", "ferry"], lines: ["Marmaray"], coordinates: { lat: 41.0233, lng: 29.0144 }, district: "Üsküdar", area: "Üsküdar", interchange: ["ferry-uskudar", "m5-uskudar"] },
   { id: "marmaray-ayrilikcesmesi", name: "Ayrılık Çeşmesi", modes: ["marmaray"], lines: ["Marmaray"], coordinates: { lat: 41.0, lng: 29.0286 }, district: "Kadıköy", area: "Ayrılık Çeşmesi" },
   { id: "marmaray-yenikapi", name: "Yenikapı", modes: ["marmaray"], lines: ["Marmaray"], coordinates: { lat: 41.0044, lng: 28.9508 }, district: "Fatih", area: "Yenikapı" },
   { id: "marmaray-zeytinburnu", name: "Zeytinburnu", modes: ["marmaray"], lines: ["Marmaray"], coordinates: { lat: 40.9944, lng: 28.9053 }, district: "Zeytinburnu", area: "Zeytinburnu" },
@@ -56,6 +62,7 @@ export const stations: Station[] = [
   { id: "tunel-beyoglu", name: "Tünel (Beyoğlu)", modes: ["funicular"], lines: ["Tünel"], coordinates: { lat: 41.0281, lng: 28.9744 }, district: "Beyoğlu", area: "Tünel Square" },
   { id: "f1-kabatas", name: "Kabataş (F1)", modes: ["funicular"], lines: ["F1"], coordinates: { lat: 41.0378, lng: 28.9928 }, district: "Beşiktaş", area: "Kabataş" },
   { id: "f1-taksim", name: "Taksim (F1)", modes: ["funicular"], lines: ["F1"], coordinates: { lat: 41.0369, lng: 28.9856 }, district: "Beyoğlu", area: "Taksim" },
+  { id: "f4-asiyan", name: "Aşiyan (F4)", modes: ["funicular"], lines: ["F4"], coordinates: { lat: 41.0761, lng: 29.0567 }, district: "Beşiktaş", area: "Bebek/Aşiyan" },
 
   // ───────── Şehir Hatları ferry piers ─────────
   { id: "ferry-eminonu", name: "Eminönü İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 41.0176, lng: 28.9738 }, district: "Fatih", area: "Eminönü" },
@@ -63,7 +70,7 @@ export const stations: Station[] = [
   { id: "ferry-besiktas", name: "Beşiktaş İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 41.0422, lng: 29.0075 }, district: "Beşiktaş", area: "Beşiktaş" },
   { id: "ferry-kabatas", name: "Kabataş İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 41.0361, lng: 28.9928 }, district: "Beşiktaş", area: "Kabataş" },
   { id: "ferry-uskudar", name: "Üsküdar İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 41.0225, lng: 29.0144 }, district: "Üsküdar", area: "Üsküdar" },
-  { id: "ferry-kadikoy", name: "Kadıköy İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 40.9925, lng: 29.0244 }, district: "Kadıköy", area: "Kadıköy" },
+  { id: "ferry-kadikoy", name: "Kadıköy İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 40.9925, lng: 29.0244 }, district: "Kadıköy", area: "Kadıköy", interchange: ["m4-kadikoy"] },
   { id: "ferry-bostanci", name: "Bostancı İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 40.9556, lng: 29.0942 }, district: "Kadıköy", area: "Bostancı" },
   { id: "ferry-buyukada", name: "Büyükada İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 40.8756, lng: 29.1319 }, district: "Adalar", area: "Büyükada" },
   { id: "ferry-heybeliada", name: "Heybeliada İskelesi", modes: ["ferry"], lines: ["Şehir Hatları"], coordinates: { lat: 40.8794, lng: 29.0942 }, district: "Adalar", area: "Heybeliada" },
