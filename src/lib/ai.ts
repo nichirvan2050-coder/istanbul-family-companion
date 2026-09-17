@@ -12,10 +12,12 @@ import { places, placeById } from "@/data/places";
 import { areas } from "@/data/areas";
 import { activities } from "@/data/activities";
 import { stays } from "@/data/stays";
+import { stations } from "@/data/stations";
 import { turkishPhrases, needThisNowIds } from "@/data/turkish";
 import { fareTable, istanbulkart } from "@/data/transport";
 import { paidAttractions, museumPass } from "@/data/prices";
-import { Place, regionGroups, RegionGroup } from "@/data/types";
+import { Place, Station, regionGroups, RegionGroup } from "@/data/types";
+import { haversineKm } from "@/lib/geo";
 
 export type AIIntent =
   | "find_places"
@@ -38,7 +40,7 @@ const dayTripIds = ["sapanca", "masukiye", "kartepe"];
 
 export interface AICard {
   id: string;
-  kind: "place" | "area" | "stay" | "activity" | "phrase";
+  kind: "place" | "area" | "stay" | "activity" | "phrase" | "station";
   title: string;
   subtitle?: string;
   detail?: string;
@@ -60,14 +62,16 @@ export interface AIContext {
   userCoords?: { lat: number; lng: number };
 }
 
-function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
-  const R = 6371;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const s =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+function stationToCard(s: Station, distanceKm?: number): AICard {
+  const icon = s.modes.includes("ferry") ? "⛴️" : s.modes.includes("marmaray") ? "🚆" : s.modes.includes("metro") ? "🚇" : s.modes.includes("funicular") ? "🚡" : "🚋";
+  return {
+    id: s.id,
+    kind: "station",
+    title: `${icon} ${s.name}`,
+    subtitle: s.lines.join(" · "),
+    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.name} ${s.area} Istanbul`)}`,
+    distanceKm,
+  };
 }
 
 function placeToCard(p: Place, distanceKm?: number): AICard {
@@ -110,7 +114,7 @@ function detectIntent(query: string): AIIntent {
   if (/\bhow much\b|\bprice\b|\bcost\b|\bticket\b|\bfare\b/.test(q)) return "price";
   if (/\bhow do (i|we) get\b|\bferry\b|\btram\b|\bmetro\b|\bmarmaray\b|\bbus\b|\btransport\b|\bistanbulkart\b/.test(q)) return "transport";
   if (/\bstroller\b|\bsmall child\b|\byoung child\b|\bwith (a |our )?(kid|child|daughter|son)\b|\bfamily\b/.test(q)) return "family_places";
-  if (/\bnear me\b|\bnearby\b|\bclose to\b|\baround here\b/.test(q)) return "nearby_places";
+  if (/\bnear me\b|\bnearby\b|\bclose to\b|\baround here\b|\bnearest (station|tram|metro|ferry|stop)\b/.test(q)) return "nearby_places";
   if (/\bhotel\b|\bstay\b|\baccommodation\b|\bapartment\b/.test(q)) return "find_stays";
   if (/\baquarium\b|\bmuseum for kids\b|\bplayground\b|\bactivity\b|\bactivities\b/.test(q)) return "find_activities";
   if (/\bhistory\b|\btell me about\b|\bwhy is\b.*\bimportant\b|\bwhat happened\b/.test(q)) return "history";
@@ -230,19 +234,37 @@ function familyAnswer(query: string, context: AIContext): AIResponse {
   };
 }
 
-function nearbyAnswer(context: AIContext): AIResponse {
+function nearbyAnswer(query: string, context: AIContext): AIResponse {
   if (!context.userCoords) {
     return { intent: "nearby_places", text: "Location access is off. Search by area instead, or enable location to use \"Near Me.\"", cards: [] };
   }
-  const withDistance = places
+  const q = query.toLowerCase();
+  const wantsStationOnly = /\bstation\b|\btransit\b|\btram stop\b|\bmetro stop\b|\bferry (pier|dock)\b/.test(q);
+
+  const nearestPlaces = places
     .filter((p) => p.coordinates)
     .map((p) => ({ p, d: haversineKm(context.userCoords!, p.coordinates!) }))
-    .sort((a, b) => a.d - b.d)
-    .slice(0, 6);
+    .sort((a, b) => a.d - b.d);
+  const nearestStations = stations
+    .map((s) => ({ s, d: haversineKm(context.userCoords!, s.coordinates) }))
+    .sort((a, b) => a.d - b.d);
+
+  if (wantsStationOnly) {
+    return {
+      intent: "nearby_places",
+      text: "Closest transit stations to your current location:",
+      cards: nearestStations.slice(0, 6).map(({ s, d }) => stationToCard(s, d)),
+      sourceNote: "Station coordinates are approximate (street-block accuracy) — confirm exact platform/exit locally.",
+    };
+  }
+
+  const placeCards = nearestPlaces.slice(0, 5).map(({ p, d }) => placeToCard(p, d));
+  const stationCards = nearestStations.slice(0, 3).map(({ s, d }) => stationToCard(s, d));
   return {
     intent: "nearby_places",
-    text: "Closest verified places to your current location:",
-    cards: withDistance.map(({ p, d }) => placeToCard(p, d)),
+    text: "Closest verified places to your current location, plus the nearest transit:",
+    cards: [...placeCards, ...stationCards],
+    sourceNote: "Station coordinates are approximate (street-block accuracy) — confirm exact platform/exit locally. See /near-me for the full sorted list.",
   };
 }
 
@@ -407,7 +429,7 @@ export function askIstanbulAI(query: string, context: AIContext = {}): AIRespons
     case "family_places":
       return familyAnswer(trimmed, context);
     case "nearby_places":
-      return nearbyAnswer(context);
+      return nearbyAnswer(trimmed, context);
     case "find_stays":
       return staysAnswer(trimmed);
     case "find_activities":
@@ -432,7 +454,7 @@ export function askIstanbulAI(query: string, context: AIContext = {}): AIRespons
 }
 
 export const quickPrompts = [
-  { label: "📍 Near Me", query: "Find family places near me" },
+  { label: "📍 Near Me", query: "What's near me right now?" },
   { label: "👨‍👩‍👧 Family", query: "Find family-friendly places" },
   { label: "🏛️ Places", query: "Show me historical places" },
   { label: "🏝️ Islands", query: "Which Princes' Island should we visit?" },

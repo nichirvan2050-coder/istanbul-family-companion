@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Place } from "@/data/types";
 import FamilyBadge from "./FamilyBadge";
 import { useLocale } from "@/lib/i18n";
+import { formatDistance } from "@/lib/geo";
 
 const categoryEmoji: Record<string, string> = {
   history: "🏛️",
@@ -39,7 +40,7 @@ export default function PlaceCard({ place, distanceKm }: { place: Place; distanc
         </div>
         <p className="truncate text-sm" style={{ color: "var(--muted)" }}>
           📍 {place.area}
-          {distanceKm !== undefined ? ` · ${distanceKm.toFixed(1)} km` : ""}
+          {distanceKm !== undefined ? ` · ${formatDistance(distanceKm)}` : ""}
         </p>
         <p className="mt-1 line-clamp-2 text-sm">{place.summary}</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">

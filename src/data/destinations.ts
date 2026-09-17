@@ -13,7 +13,7 @@ const TODAY = "2026-09-17";
 const KP = { name: "Kültür Portalı", url: "https://kulturportali.gov.tr/", type: "official" as const };
 const GT = { name: "Go Türkiye — Istanbul", url: "https://goturkiye.com/istanbul", type: "official" as const };
 
-export const destinations: Place[] = [
+const rawDestinations: Place[] = [
   // ───────────────────────── HISTORIC PENINSULA (extras) ─────────────────────────
   {
     id: "turkish-islamic-arts-museum",
@@ -1682,3 +1682,105 @@ export const destinations: Place[] = [
     sources: [KP],
   },
 ];
+
+// Approximate coordinates (good to roughly street-block accuracy, not
+// survey-grade) for every destination above, so "Near Me" can sort by real
+// distance instead of skipping most of the database. Kept as a separate map
+// rather than inline per record purely for editing convenience.
+const coordinates: Record<string, { lat: number; lng: number }> = {
+  "turkish-islamic-arts-museum": { lat: 41.0055, lng: 28.9736 },
+  "grand-palace-mosaic-museum": { lat: 41.0048, lng: 28.9765 },
+  "rustem-pasha-mosque": { lat: 41.0169, lng: 28.97 },
+  laleli: { lat: 41.0103, lng: 28.9563 },
+  beyazit: { lat: 41.0108, lng: 28.9639 },
+  "cemberlitas-column": { lat: 41.0088, lng: 28.9689 },
+  "caferaga-medresesi": { lat: 41.009, lng: 28.9822 },
+  "kucuk-ayasofya": { lat: 41.0026, lng: 28.9754 },
+  "sokollu-mehmed-pasha-mosque": { lat: 41.0028, lng: 28.9736 },
+  "valens-aqueduct": { lat: 41.0146, lng: 28.9558 },
+  "istanbul-city-walls": { lat: 41.0328, lng: 28.9391 },
+  zeyrek: { lat: 41.0186, lng: 28.9502 },
+
+  tunel: { lat: 41.0284, lng: 28.9743 },
+  "cicek-pasaji": { lat: 41.0328, lng: 28.9765 },
+  "french-street": { lat: 41.0333, lng: 28.9762 },
+  "kamondo-stairs": { lat: 41.0248, lng: 28.9752 },
+  galataport: { lat: 41.0245, lng: 28.9765 },
+  "istanbul-modern": { lat: 41.0247, lng: 28.977 },
+  "pera-museum": { lat: 41.0316, lng: 28.9748 },
+  akm: { lat: 41.037, lng: 28.9853 },
+  cihangir: { lat: 41.0308, lng: 28.9812 },
+  cukurcuma: { lat: 41.0311, lng: 28.9779 },
+  nevizade: { lat: 41.0342, lng: 28.9767 },
+
+  eyup: { lat: 41.0479, lng: 28.9339 },
+  "eyup-sultan-mosque": { lat: 41.0481, lng: 28.9335 },
+  "pierre-loti-hill": { lat: 41.0524, lng: 28.9327 },
+
+  arnavutkoy: { lat: 41.0688, lng: 29.0387 },
+  "ciragan-palace": { lat: 41.0417, lng: 29.0067 },
+
+  kuzguncuk: { lat: 41.0333, lng: 29.0314 },
+  beylerbeyi: { lat: 41.0417, lng: 29.0389 },
+  "beylerbeyi-palace": { lat: 41.0421, lng: 29.0397 },
+  cengelkoy: { lat: 41.05, lng: 29.055 },
+  kandilli: { lat: 41.0631, lng: 29.0575 },
+  "anadolu-hisari": { lat: 41.09, lng: 29.0611 },
+  kanlica: { lat: 41.085, lng: 29.0611 },
+
+  salacak: { lat: 41.0136, lng: 29.0044 },
+  "mihrimah-sultan-mosque-uskudar": { lat: 41.0244, lng: 29.0144 },
+  "uskudar-fish-market": { lat: 41.023, lng: 29.013 },
+  "fethi-pasa-korusu": { lat: 41.0367, lng: 29.0217 },
+  "valide-i-atik-mosque": { lat: 41.0222, lng: 29.0125 },
+  "aziz-mahmud-hudayi": { lat: 41.025, lng: 29.008 },
+  "kucuk-camlica": { lat: 41.015, lng: 29.07 },
+
+  "kadikoy-pier": { lat: 40.9926, lng: 29.0244 },
+  "kadikoy-fish-market": { lat: 40.9897, lng: 29.0264 },
+  "bahariye-street": { lat: 40.9868, lng: 29.029 },
+  yeldegirmeni: { lat: 40.995, lng: 29.028 },
+  "yogurtcu-park": { lat: 40.9838, lng: 29.0333 },
+  "fenerbahce-park": { lat: 40.9722, lng: 29.0417 },
+  caddebostan: { lat: 40.9686, lng: 29.0553 },
+  "bagdat-avenue": { lat: 40.965, lng: 29.0611 },
+  kalamis: { lat: 40.9789, lng: 29.0378 },
+
+  buyukada: { lat: 40.8767, lng: 29.1244 },
+  "aya-yorgi": { lat: 40.8672, lng: 29.1247 },
+  "princes-islands-museum": { lat: 40.8781, lng: 29.1214 },
+  heybeliada: { lat: 40.8781, lng: 29.0928 },
+  "degirmenburnu-nature-park": { lat: 40.8825, lng: 29.09 },
+  burgazada: { lat: 40.8781, lng: 29.0658 },
+  kinaliada: { lat: 40.9186, lng: 29.0522 },
+
+  bakirkoy: { lat: 40.9819, lng: 28.8772 },
+  atakoy: { lat: 40.9781, lng: 28.8375 },
+  "atakoy-marina": { lat: 40.9756, lng: 28.8342 },
+  "aqua-florya": { lat: 40.9758, lng: 28.7861 },
+  "florya-coastline": { lat: 40.9764, lng: 28.7889 },
+  "florya-ataturk-forest": { lat: 40.98, lng: 28.7847 },
+
+  "belgrad-forest": { lat: 41.1833, lng: 28.9833 },
+  "kemerburgaz-forest": { lat: 41.1719, lng: 28.9394 },
+  "ataturk-arboretum": { lat: 41.1897, lng: 28.9944 },
+  polonezkoy: { lat: 41.1381, lng: 29.1064 },
+  "aydos-forest": { lat: 40.9944, lng: 29.2064 },
+
+  riva: { lat: 41.2264, lng: 29.2394 },
+  sile: { lat: 41.1758, lng: 29.6122 },
+  agva: { lat: 41.1478, lng: 29.8656 },
+  kilyos: { lat: 41.2456, lng: 29.0217 },
+
+  sapanca: { lat: 40.6906, lng: 30.2647 },
+  masukiye: { lat: 40.7378, lng: 30.2417 },
+  kartepe: { lat: 40.7383, lng: 30.2233 },
+
+  nisantasi: { lat: 41.0478, lng: 28.9944 },
+  sisli: { lat: 41.0603, lng: 28.9878 },
+};
+
+export const destinations: Place[] = rawDestinations.map((p) => ({
+  ...p,
+  coordinates: coordinates[p.id],
+}));

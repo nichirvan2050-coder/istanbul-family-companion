@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { askIstanbulAI, quickPrompts, AICard, AIResponse } from "@/lib/ai";
 import { canListen, listen, speak, canSpeak } from "@/lib/speech";
+import { formatDistance } from "@/lib/geo";
 
 interface Turn {
   query: string;
@@ -11,17 +12,15 @@ interface Turn {
 }
 
 function CardRow({ card }: { card: AICard }) {
-  return (
-    <Link
-      href={card.href}
-      className="card flex items-center justify-between gap-2 p-2.5 text-left transition-shadow hover:shadow-sm"
-    >
+  const isExternal = card.href.startsWith("http");
+  const content = (
+    <>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{card.title}</p>
         {card.subtitle && (
           <p className="truncate text-xs" style={{ color: "var(--muted)" }}>
             {card.subtitle}
-            {card.distanceKm !== undefined ? ` · ${card.distanceKm.toFixed(1)} km` : ""}
+            {card.distanceKm !== undefined ? ` · ${formatDistance(card.distanceKm)}` : ""}
           </p>
         )}
       </div>
@@ -30,6 +29,16 @@ function CardRow({ card }: { card: AICard }) {
           {card.price}
         </span>
       )}
+    </>
+  );
+  const className = "card flex items-center justify-between gap-2 p-2.5 text-left transition-shadow hover:shadow-sm";
+  return isExternal ? (
+    <a href={card.href} target="_blank" rel="noopener noreferrer" className={className}>
+      {content}
+    </a>
+  ) : (
+    <Link href={card.href} className={className}>
+      {content}
     </Link>
   );
 }

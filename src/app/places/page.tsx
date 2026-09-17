@@ -72,9 +72,14 @@ function PlacesContent() {
             {places.length} destinations — {t("places_subtitle")}
           </p>
         </div>
-        <Link href="/explore" className="tap-target shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium" style={{ borderColor: "var(--border)" }}>
-          🧭 Explore
-        </Link>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          <Link href="/near-me" className="tap-target rounded-full border px-3 py-1.5 text-center text-xs font-medium" style={{ borderColor: "var(--border)" }}>
+            📍 Near Me
+          </Link>
+          <Link href="/explore" className="tap-target rounded-full border px-3 py-1.5 text-center text-xs font-medium" style={{ borderColor: "var(--border)" }}>
+            🧭 Explore
+          </Link>
+        </div>
       </div>
 
       {(superRegion || region) && (

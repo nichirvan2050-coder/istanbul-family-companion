@@ -13,6 +13,20 @@ export default function ExplorePage() {
         Where do you want to go?
       </p>
 
+      <Link
+        href="/near-me"
+        className="card mt-4 flex items-center gap-3 p-4 text-white transition-shadow hover:shadow-md"
+        style={{ background: "linear-gradient(120deg, var(--bosphorus-dark), var(--bosphorus))" }}
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-2xl" aria-hidden>
+          📍
+        </span>
+        <span>
+          <span className="block font-semibold">Near Me</span>
+          <span className="block text-xs opacity-90">Every place and transit stop, sorted by real distance from you</span>
+        </span>
+      </Link>
+
       <div className="mt-4 grid grid-cols-2 gap-3">
         {groupOrder.map((key) => {
           const g = regionGroups[key];

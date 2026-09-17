@@ -154,6 +154,22 @@ export interface Place {
   sources: SourceRef[];
 }
 
+// A fixed piece of transport infrastructure (tram/metro/Marmaray stop,
+// funicular station, or ferry pier) — kept separate from Place so "Near Me"
+// can surface real transit options alongside tourist destinations. Modeled
+// only on well-known, stable infrastructure (lines don't move), unlike bus
+// stops or timetables, which change too often to hard-code responsibly.
+export interface Station {
+  id: string;
+  name: string;
+  modes: ("tram" | "metro" | "marmaray" | "ferry" | "funicular")[];
+  lines: string[]; // e.g. ["T1"], ["M2"], ["Şehir Hatları"]
+  coordinates: { lat: number; lng: number };
+  district: string;
+  area: string;
+  interchange?: string[]; // other station ids reachable by a short walk/transfer here
+}
+
 export interface Area {
   id: string;
   name: string;
