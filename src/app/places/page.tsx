@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { places } from "@/data/places";
 import PlaceCard from "@/components/PlaceCard";
 import { FamilyLevel, Place } from "@/data/types";
+import { useLocale } from "@/lib/i18n";
 
 const categories: { id: Place["category"][number]; label: string; icon: string }[] = [
   { id: "history", label: "History", icon: "🏛️" },
@@ -17,6 +18,7 @@ const categories: { id: Place["category"][number]; label: string; icon: string }
 ];
 
 function PlacesContent() {
+  const { t } = useLocale();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(searchParams.get("category"));
@@ -36,9 +38,9 @@ function PlacesContent() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">📍 Places</h1>
+      <h1 className="font-display text-2xl font-semibold">{t("places_title")}</h1>
       <p className="text-sm" style={{ color: "var(--muted)" }}>
-        {places.length} curated places — not the whole city, just what&apos;s worth your time.
+        {t("places_subtitle")}
       </p>
 
       <input

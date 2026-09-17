@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Place } from "@/data/types";
 import FamilyBadge from "./FamilyBadge";
+import { useLocale } from "@/lib/i18n";
 
 const categoryEmoji: Record<string, string> = {
   history: "🏛️",
@@ -16,6 +19,7 @@ const categoryEmoji: Record<string, string> = {
 };
 
 export default function PlaceCard({ place, distanceKm }: { place: Place; distanceKm?: number }) {
+  const { t } = useLocale();
   const emoji = categoryEmoji[place.category[0]] ?? "📍";
   return (
     <Link
@@ -44,7 +48,7 @@ export default function PlaceCard({ place, distanceKm }: { place: Place; distanc
             ⏱️ {place.duration}
           </span>
           <span className="text-xs" style={{ color: "var(--muted)" }}>
-            {place.ticket.free ? "🎟️ Free" : "🎟️ Paid"}
+            {place.ticket.free ? `🎟️ ${t("common_free")}` : `🎟️ ${t("common_paid")}`}
           </span>
         </div>
       </div>

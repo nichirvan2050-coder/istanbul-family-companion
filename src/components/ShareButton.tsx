@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n";
 
 export default function ShareButton({ title, text }: { title: string; text?: string }) {
+  const { t } = useLocale();
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
@@ -31,7 +33,7 @@ export default function ShareButton({ title, text }: { title: string; text?: str
       className="tap-target inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium"
       style={{ borderColor: "var(--border)" }}
     >
-      {copied ? "✅ Link copied" : "🔗 Share"}
+      {copied ? "✅" : `🔗 ${t("common_share")}`}
     </button>
   );
 }

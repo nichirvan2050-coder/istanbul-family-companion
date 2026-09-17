@@ -1,9 +1,11 @@
+import { PageTitle } from "@/components/PageTitle";
+
 export const metadata = { title: "About" };
 
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">About My Istanbul</h1>
+      <PageTitle k="about_title" />
       <div className="mt-4 space-y-4 text-[15px] leading-relaxed">
         <p>
           This guide combines curated Istanbul information with official and reliable sources. Historical

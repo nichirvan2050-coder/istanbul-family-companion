@@ -2,6 +2,7 @@ import Link from "next/link";
 import { areas } from "@/data/areas";
 import { activities } from "@/data/activities";
 import { itinerary } from "@/data/itinerary";
+import { PageTitle } from "@/components/PageTitle";
 
 export const metadata = { title: "Family" };
 
@@ -10,7 +11,7 @@ const walkingEmoji = { light: "🟢", moderate: "🟡", heavy: "🔴" };
 export default function FamilyPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">👨‍👩‍👧 Family</h1>
+      <PageTitle k="family_title" />
       <p className="text-sm" style={{ color: "var(--muted)" }}>
         Areas are described factually and never ranked — pick based on what matters to your family.
       </p>

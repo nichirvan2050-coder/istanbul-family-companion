@@ -1,4 +1,5 @@
 import { sourceDirectory } from "@/data/sources";
+import { PageTitle } from "@/components/PageTitle";
 
 export const metadata = { title: "Sources" };
 
@@ -7,7 +8,7 @@ const typeLabel: Record<string, string> = { official: "🟢 Official", reputable
 export default function SourcesPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">Official Source Directory</h1>
+      <PageTitle k="sources_title" />
       <p className="text-sm" style={{ color: "var(--muted)" }}>
         The official and reputable sources used throughout this guide.
       </p>

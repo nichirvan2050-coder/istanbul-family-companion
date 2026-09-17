@@ -5,8 +5,10 @@ import Link from "next/link";
 import { turkishPhrases, categoryLabels } from "@/data/turkish";
 import { TurkishPhrase } from "@/data/types";
 import PhraseCard from "@/components/PhraseCard";
+import { useLocale } from "@/lib/i18n";
 
 export default function TurkishPage() {
+  const { t } = useLocale();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<TurkishPhrase["category"] | null>(null);
 
@@ -23,9 +25,9 @@ export default function TurkishPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">🇹🇷 Turkish for Your Trip</h1>
+      <h1 className="font-display text-2xl font-semibold">{t("turkish_title")}</h1>
       <p className="text-sm" style={{ color: "var(--muted)" }}>
-        Practical travel Turkish, not a language course. Tap 🔊 for pronunciation using your device&apos;s voice.
+        {t("turkish_subtitle")}
       </p>
 
       <Link

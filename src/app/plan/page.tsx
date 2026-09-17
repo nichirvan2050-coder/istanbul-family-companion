@@ -4,10 +4,12 @@ import Link from "next/link";
 import { itinerary } from "@/data/itinerary";
 import { setTripStart, getTripStart } from "@/lib/trip";
 import { useEffect, useState } from "react";
+import { useLocale } from "@/lib/i18n";
 
 const walkingConfig = { light: { emoji: "🟢", label: "Light" }, moderate: { emoji: "🟡", label: "Moderate" }, heavy: { emoji: "🔴", label: "Heavy" } };
 
 export default function PlanPage() {
+  const { t } = useLocale();
   const [start, setStart] = useState("");
 
   useEffect(() => {
@@ -17,9 +19,9 @@ export default function PlanPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">🗓️ 10-Day Istanbul Plan</h1>
+      <h1 className="font-display text-2xl font-semibold">{t("plan_title")}</h1>
       <p className="text-sm" style={{ color: "var(--muted)" }}>
-        Geographically sensible days — no unnecessary crisscrossing the city.
+        {t("plan_subtitle")}
       </p>
 
       <div className="card mt-4 flex items-center gap-3 p-3">

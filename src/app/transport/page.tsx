@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { transportModes } from "@/data/transport";
+import { PageTitle } from "@/components/PageTitle";
 
 export const metadata = { title: "Transport" };
 
 export default function TransportPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">🚋 Istanbul Transport</h1>
+      <PageTitle k="transport_title" />
       <p className="text-sm" style={{ color: "var(--muted)" }}>
         Times are approximate (e.g. ~15–25 min) — actual travel time depends on crowds and traffic.
       </p>

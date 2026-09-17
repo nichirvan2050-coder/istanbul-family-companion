@@ -10,8 +10,10 @@ import { phraseById } from "@/data/turkish";
 import PlaceCard from "@/components/PlaceCard";
 import PhraseCard from "@/components/PhraseCard";
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n";
 
 export default function SavedPage() {
+  const { t } = useLocale();
   const [items, setItems] = useState<SavedItem[]>([]);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function SavedPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-xl px-4 py-6">
-        <h1 className="font-display text-2xl font-semibold">❤️ Saved</h1>
+        <h1 className="font-display text-2xl font-semibold">{t("saved_title")}</h1>
         <p className="mt-4 text-sm" style={{ color: "var(--muted)" }}>
           Nothing saved yet. Tap the ❤️ on any place, activity, stay, or Turkish phrase to keep it here — stored only on this device.
         </p>
@@ -43,7 +45,7 @@ export default function SavedPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">❤️ Saved</h1>
+      <h1 className="font-display text-2xl font-semibold">{t("saved_title")}</h1>
       <p className="text-sm" style={{ color: "var(--muted)" }}>
         Stored only in this browser — nothing is sent anywhere.
       </p>

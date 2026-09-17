@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { SavedKind, isSaved, toggleSaved } from "@/lib/storage";
+import { useLocale } from "@/lib/i18n";
 
 export default function SaveButton({ kind, id, label = true }: { kind: SavedKind; id: string; label?: boolean }) {
+  const { t } = useLocale();
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function SaveButton({ kind, id, label = true }: { kind: SavedKind
       }}
     >
       <span aria-hidden>{saved ? "❤️" : "🤍"}</span>
-      {label && (saved ? "Saved" : "Save")}
+      {label && (saved ? t("common_saved") : t("common_save"))}
     </button>
   );
 }

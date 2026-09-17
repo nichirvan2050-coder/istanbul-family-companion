@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "@/lib/i18n";
 
 const checklist = [
   "Istanbulkart (or plan where to buy it on arrival)",
@@ -30,6 +31,7 @@ const goodToKnow = [
 const KEY = "my-istanbul:checklist";
 
 export default function BeforeYouGoPage() {
+  const { t } = useLocale();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function BeforeYouGoPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">Before Istanbul</h1>
+      <h1 className="font-display text-2xl font-semibold">{t("beforeYouGo_title")}</h1>
       <ul className="mt-4 space-y-2">
         {checklist.map((item) => (
           <li key={item}>

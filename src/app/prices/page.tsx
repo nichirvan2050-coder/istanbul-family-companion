@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fareTable } from "@/data/transport";
 import { freeAttractions, paidAttractions, museumPass } from "@/data/prices";
 import { VerificationBadge } from "@/components/SourceTag";
+import { PageTitle } from "@/components/PageTitle";
 
 export const metadata = { title: "Tickets & Prices" };
 
@@ -10,7 +11,7 @@ export default function PricesPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="font-display text-2xl font-semibold">🎟️ Tickets & Prices</h1>
+      <PageTitle k="prices_title" />
       <p className="text-sm" style={{ color: "var(--muted)" }}>
         Every changing figure below shows its source and the date it was checked. Treat 🟡 as a strong current estimate, not a live price.
       </p>
@@ -56,7 +57,7 @@ export default function PricesPage() {
               key={a.name}
               href={a.placeId ? `/places/${a.placeId}` : "#"}
               className="rounded-full px-3 py-1.5 text-sm"
-              style={{ background: "rgba(31,174,110,0.14)", color: "var(--success)" }}
+              style={{ background: "rgba(22,163,74,0.12)", color: "var(--success)" }}
             >
               {a.name}
             </Link>

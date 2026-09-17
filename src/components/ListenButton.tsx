@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { canSpeak, speak } from "@/lib/speech";
+import { useLocale } from "@/lib/i18n";
 
 export default function ListenButton({ text, lang = "tr-TR" }: { text: string; lang?: string }) {
+  const { t } = useLocale();
   const [supported, setSupported] = useState(false);
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export default function ListenButton({ text, lang = "tr-TR" }: { text: string; l
       style={{ borderColor: "var(--border)", color: "var(--bosphorus)" }}
       aria-label={`Listen to pronunciation: ${text}`}
     >
-      🔊 Listen
+      🔊 {t("common_listen")}
     </button>
   );
 }

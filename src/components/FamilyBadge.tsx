@@ -1,9 +1,9 @@
 import { FamilyLevel } from "@/data/types";
 
 const config: Record<FamilyLevel, { emoji: string; label: string; color: string; bg: string }> = {
-  easy: { emoji: "🟢", label: "Easy", color: "#1a9c63", bg: "rgba(31,174,110,0.14)" },
-  moderate: { emoji: "🟡", label: "Moderate", color: "#c98a00", bg: "rgba(255,194,51,0.20)" },
-  difficult: { emoji: "🔴", label: "Difficult", color: "#d84a35", bg: "rgba(232,84,61,0.14)" },
+  easy: { emoji: "🟢", label: "Easy", color: "#16a34a", bg: "rgba(22,163,74,0.12)" },
+  moderate: { emoji: "🟡", label: "Moderate", color: "#d97706", bg: "rgba(217,119,6,0.14)" },
+  difficult: { emoji: "🔴", label: "Difficult", color: "#dc2626", bg: "rgba(220,38,38,0.12)" },
 };
 
 export default function FamilyBadge({ level, size = "sm" }: { level: FamilyLevel; size?: "sm" | "md" }) {

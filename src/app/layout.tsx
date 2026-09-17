@@ -5,6 +5,8 @@ import BottomNav from "@/components/BottomNav";
 import AIWidget from "@/components/AIWidget";
 import RegisterServiceWorker from "@/components/RegisterServiceWorker";
 import Footer from "@/components/Footer";
+import TopBar from "@/components/TopBar";
+import { LocaleProvider } from "@/lib/i18n";
 import { appName } from "@/data/settings";
 
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#00aeef",
+  themeColor: "#0ea5c0",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -36,13 +38,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${body.variable} ${display.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" style={{ background: "var(--background)", color: "var(--foreground)" }}>
-        <main className="flex-1 pb-24">
-          {children}
-          <Footer />
-        </main>
-        <AIWidget />
-        <BottomNav />
-        <RegisterServiceWorker />
+        <LocaleProvider>
+          <TopBar />
+          <main className="flex-1 pb-24">
+            {children}
+            <Footer />
+          </main>
+          <AIWidget />
+          <BottomNav />
+          <RegisterServiceWorker />
+        </LocaleProvider>
       </body>
     </html>
   );

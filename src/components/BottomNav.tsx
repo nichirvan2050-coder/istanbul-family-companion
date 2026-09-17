@@ -2,10 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navItems } from "@/data/settings";
+import { useLocale } from "@/lib/i18n";
+import { TranslationKey } from "@/locales/translations";
+
+const navItems: { href: string; icon: string; key: TranslationKey }[] = [
+  { href: "/", icon: "🏠", key: "nav_home" },
+  { href: "/plan", icon: "🗓️", key: "nav_plan" },
+  { href: "/places", icon: "📍", key: "nav_places" },
+  { href: "/transport", icon: "🚋", key: "nav_transport" },
+  { href: "/saved", icon: "❤️", key: "nav_saved" },
+];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { t } = useLocale();
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur supports-[backdrop-filter]:bg-[var(--surface)]/90 bg-[var(--surface)]"
@@ -24,7 +34,7 @@ export default function BottomNav() {
               aria-current={active ? "page" : undefined}
             >
               <span className="text-xl leading-none">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{t(item.key)}</span>
             </Link>
           );
         })}
