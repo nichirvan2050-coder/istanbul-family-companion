@@ -1,4 +1,5 @@
-import { Place } from "./types";
+import { Place, DestType, Region } from "./types";
+import { destinations } from "./destinations";
 
 // Ticket prices and opening hours change often. Every priced/timed field below is
 // a Sourced<string> with status "check" (🟡) unless noted otherwise — treat the
@@ -8,7 +9,7 @@ import { Place } from "./types";
 
 const TODAY = "2026-09-17";
 
-export const places: Place[] = [
+const flagshipPlaces: Place[] = [
   {
     id: "hagia-sophia",
     name: "Hagia Sophia",
@@ -952,7 +953,7 @@ export const places: Place[] = [
   },
   {
     id: "camlica-hill",
-    name: "Çamlıca Hill",
+    name: "Büyük Çamlıca",
     category: ["viewpoint", "park", "family"],
     district: "Üsküdar",
     area: "Çamlıca",
@@ -993,6 +994,54 @@ export const places: Place[] = [
     mapQuery: "Maçka Park, Istanbul",
     sources: [{ name: "Kültür Portalı", url: "https://kulturportali.gov.tr/", type: "official" }],
   },
+];
+
+// Region/destType for the original flagship places, backfilled here rather
+// than by editing 37 existing records — new records set these fields
+// directly (see destinations.ts).
+const legacyMeta: Record<string, { region: Region; destType: DestType }> = {
+  "hagia-sophia": { region: "historic-peninsula", destType: "historic_site" },
+  "blue-mosque": { region: "historic-peninsula", destType: "mosque" },
+  hippodrome: { region: "historic-peninsula", destType: "historic_site" },
+  "basilica-cistern": { region: "historic-peninsula", destType: "historic_site" },
+  "gulhane-park": { region: "historic-peninsula", destType: "park" },
+  "topkapi-palace": { region: "historic-peninsula", destType: "palace" },
+  "archaeological-museums": { region: "historic-peninsula", destType: "museum" },
+  "grand-bazaar": { region: "historic-peninsula", destType: "market" },
+  "suleymaniye-mosque": { region: "historic-peninsula", destType: "mosque" },
+  "spice-bazaar": { region: "historic-peninsula", destType: "market" },
+  eminonu: { region: "historic-peninsula", destType: "waterfront" },
+  "galata-bridge": { region: "beyoglu", destType: "attraction" },
+  uskudar: { region: "uskudar", destType: "neighborhood" },
+  "maidens-tower-viewpoint": { region: "uskudar", destType: "viewpoint" },
+  "galata-tower": { region: "beyoglu", destType: "viewpoint" },
+  galata: { region: "beyoglu", destType: "neighborhood" },
+  karakoy: { region: "beyoglu", destType: "neighborhood" },
+  "istiklal-street": { region: "beyoglu", destType: "neighborhood" },
+  "taksim-square": { region: "beyoglu", destType: "attraction" },
+  "dolmabahce-palace": { region: "bosphorus-european", destType: "palace" },
+  besiktas: { region: "bosphorus-european", destType: "neighborhood" },
+  ortakoy: { region: "bosphorus-european", destType: "neighborhood" },
+  bosphorus: { region: "bosphorus-european", destType: "waterfront" },
+  kadikoy: { region: "kadikoy-asian", destType: "neighborhood" },
+  "kadikoy-market": { region: "kadikoy-asian", destType: "market" },
+  moda: { region: "kadikoy-asian", destType: "neighborhood" },
+  fener: { region: "golden-horn", destType: "neighborhood" },
+  "greek-patriarchate": { region: "golden-horn", destType: "historic_site" },
+  balat: { region: "golden-horn", destType: "neighborhood" },
+  "golden-horn": { region: "golden-horn", destType: "waterfront" },
+  "chora-church": { region: "historic-peninsula", destType: "mosque" },
+  "rumeli-fortress": { region: "bosphorus-european", destType: "historic_site" },
+  bebek: { region: "bosphorus-european", destType: "neighborhood" },
+  "yildiz-park": { region: "bosphorus-european", destType: "park" },
+  "emirgan-park": { region: "bosphorus-european", destType: "park" },
+  "camlica-hill": { region: "uskudar", destType: "viewpoint" },
+  "macka-park": { region: "modern-city", destType: "park" },
+};
+
+export const places: Place[] = [
+  ...flagshipPlaces.map((p) => (p.destType ? p : { ...p, ...legacyMeta[p.id] })),
+  ...destinations,
 ];
 
 export const placeById = (id: string) => places.find((p) => p.id === id);

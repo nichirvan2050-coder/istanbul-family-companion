@@ -24,6 +24,9 @@ const en: Dict = {
   home_subtitle: "See the city. Understand its story.",
   home_tags: "10 Days • Family • History • Transport • AI",
   home_cta: "Start Exploring",
+  explore_title: "🧭 Explore Istanbul",
+  explore_subtitle: "150+ places across the European side, Asian side, Bosphorus, Princes' Islands, nature, and day trips.",
+  explore_cta: "Start Exploring",
   home_ai_title: "✨ Ask Istanbul AI",
   home_ai_example: "“What can we visit near here with our daughter?”",
   home_ai_speak: "🎙️ Tap to Speak",
@@ -72,6 +75,11 @@ const ar: Dict = {
   home_subtitle: "شاهد المدينة. افهم قصتها.",
   home_tags: "١٠ أيام • العائلة • التاريخ • المواصلات • الذكاء الاصطناعي",
   home_cta: "ابدأ الاستكشاف",
+
+  explore_title: "🧭 استكشف إسطنبول",
+  explore_subtitle: "أكثر من ١٥٠ مكانًا في الجانب الأوروبي والآسيوي والبوسفور وجزر الأمراء والطبيعة والرحلات اليومية.",
+  explore_cta: "ابدأ الاستكشاف",
+
   home_ai_title: "✨ اسأل ذكاء إسطنبول",
   home_ai_example: "«ما الذي يمكننا زيارته بالقرب من هنا مع ابنتنا؟»",
   home_ai_speak: "🎙️ اضغط للتحدث",
@@ -120,6 +128,11 @@ const ku: Dict = {
   home_subtitle: "شارەکە ببینە. چیرۆکەکەی تێبگە.",
   home_tags: "١٠ ڕۆژ • خێزان • مێژوو • گواستنەوە • زیرەکی دەستکرد",
   home_cta: "دەستپێبکە بە گەڕان",
+
+  explore_title: "🧭 گەشتی ئیستەنبوڵ بکە",
+  explore_subtitle: "زیاتر لە ١٥٠ شوێن لە لای ئەورووپی و ئاسیایی و بۆسفۆر و دوورگەکانی میران و سروشت و گەشتی ڕۆژانە.",
+  explore_cta: "دەستپێبکە بە گەڕان",
+
   home_ai_title: "✨ پرسیار لە زیرەکی ئیستەنبوڵ بکە",
   home_ai_example: "«لەگەڵ کچەکەمان چی دەتوانین لێرە نزیک سەردانی بکەین؟»",
   home_ai_speak: "🎙️ دەست لێبدە بۆ قسەکردن",

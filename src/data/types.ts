@@ -25,6 +25,78 @@ export interface SourceRef {
 export type FamilyLevel = "easy" | "moderate" | "difficult";
 export type WalkingLevel = "light" | "moderate" | "heavy";
 
+// Structural destination type — distinct from the thematic `category` tags
+// below, so the AI/UI can tell "find a neighborhood" apart from "find a
+// museum" apart from "find a family activity."
+export type DestType =
+  | "attraction"
+  | "neighborhood"
+  | "museum"
+  | "palace"
+  | "mosque"
+  | "market"
+  | "park"
+  | "waterfront"
+  | "viewpoint"
+  | "beach"
+  | "family_activity"
+  | "shopping"
+  | "nature"
+  | "island"
+  | "island_attraction"
+  | "day_trip"
+  | "historic_site"
+  | "food_area"
+  | "transport_experience";
+
+// Large-region grouping for browsing ("Explore Istanbul"). "day-trip" is
+// explicitly outside Istanbul (see Place.outsideIstanbul) — never mixed into
+// normal Istanbul browsing/search results without that flag being visible.
+export type Region =
+  | "historic-peninsula"
+  | "beyoglu"
+  | "golden-horn"
+  | "bosphorus-european"
+  | "bosphorus-asian"
+  | "uskudar"
+  | "kadikoy-asian"
+  | "islands"
+  | "bakirkoy-florya"
+  | "nature"
+  | "black-sea"
+  | "modern-city"
+  | "day-trip";
+
+// Super-groups for the simple "Explore Istanbul" drill-down (section 28/37):
+// a handful of big buttons, each expanding to several Regions, so the huge
+// destination database never has to be shown flat on one screen.
+export type RegionGroup = "europe" | "asia" | "bosphorus" | "islands" | "nature" | "day-trip";
+
+export const regionGroups: Record<RegionGroup, { label: string; icon: string; regions: Region[] }> = {
+  europe: { label: "European Side", icon: "🏛️", regions: ["historic-peninsula", "beyoglu", "golden-horn", "bakirkoy-florya", "modern-city"] },
+  asia: { label: "Asian Side", icon: "🌏", regions: ["uskudar", "kadikoy-asian"] },
+  bosphorus: { label: "Bosphorus", icon: "🌊", regions: ["bosphorus-european", "bosphorus-asian"] },
+  islands: { label: "Princes' Islands", icon: "🏝️", regions: ["islands"] },
+  nature: { label: "Nature & Outdoors", icon: "🌳", regions: ["nature", "black-sea"] },
+  "day-trip": { label: "Day Trips", icon: "🚗", regions: ["day-trip"] },
+};
+
+export const regionLabels: Record<Region, string> = {
+  "historic-peninsula": "Historic Peninsula",
+  beyoglu: "Beyoğlu / Galata / Karaköy",
+  "golden-horn": "Golden Horn / Eyüp",
+  "bosphorus-european": "Bosphorus — European Side",
+  "bosphorus-asian": "Bosphorus — Asian Side",
+  uskudar: "Üsküdar",
+  "kadikoy-asian": "Kadıköy & Asian Side",
+  islands: "Princes' Islands",
+  "bakirkoy-florya": "Bakırköy & Florya",
+  nature: "Nature & Outdoors",
+  "black-sea": "Black Sea Coast",
+  "modern-city": "Modern City (Nişantaşı / Şişli)",
+  "day-trip": "Day Trips (Outside Istanbul)",
+};
+
 export interface FamilyInfo {
   level: FamilyLevel;
   stroller?: string;
@@ -57,6 +129,9 @@ export interface Place {
   category: ("history" | "byzantine" | "ottoman" | "bosphorus" | "city" | "family" | "park" | "market" | "religious" | "viewpoint")[];
   district: string;
   area: string;
+  destType?: DestType;
+  region?: Region;
+  outsideIstanbul?: boolean;
   coordinates?: { lat: number; lng: number };
   summary: string;
   whatIsIt: string;

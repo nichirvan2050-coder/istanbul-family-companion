@@ -53,6 +53,19 @@ export default function Home() {
           <TodayPlanCard />
         </section>
 
+        {/* Explore the full destination database */}
+        <Link
+          href="/explore"
+          className="card block overflow-hidden p-4 text-white transition-transform active:scale-[0.99]"
+          style={{ background: "linear-gradient(120deg, var(--bosphorus-dark), var(--bosphorus))" }}
+        >
+          <h2 className="font-display text-lg font-semibold">{t("explore_title")}</h2>
+          <p className="mt-1 text-sm opacity-90">{t("explore_subtitle")}</p>
+          <span className="tap-target mt-3 inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold" style={{ color: "var(--bosphorus-dark)" }}>
+            {t("explore_cta")}
+          </span>
+        </Link>
+
         {/* Ask Istanbul AI */}
         <section
           className="card p-4"

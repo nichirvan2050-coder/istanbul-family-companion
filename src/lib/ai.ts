@@ -8,14 +8,14 @@
 // implementation report) is that it understands patterns, not open-ended
 // natural language, the way a hosted LLM would.
 
-import { places } from "@/data/places";
+import { places, placeById } from "@/data/places";
 import { areas } from "@/data/areas";
 import { activities } from "@/data/activities";
 import { stays } from "@/data/stays";
 import { turkishPhrases, needThisNowIds } from "@/data/turkish";
 import { fareTable, istanbulkart } from "@/data/transport";
 import { paidAttractions, museumPass } from "@/data/prices";
-import { Place } from "@/data/types";
+import { Place, regionGroups, RegionGroup } from "@/data/types";
 
 export type AIIntent =
   | "find_places"
@@ -28,7 +28,13 @@ export type AIIntent =
   | "history"
   | "create_mini_plan"
   | "turkish_phrase"
+  | "day_trip"
+  | "island_plan"
+  | "area_plan"
   | "unknown";
+
+const islandIds = ["buyukada", "heybeliada", "burgazada", "kinaliada"];
+const dayTripIds = ["sapanca", "masukiye", "kartepe"];
 
 export interface AICard {
   id: string;
@@ -96,6 +102,9 @@ function matchPlaces(query: string): Place[] {
 
 function detectIntent(query: string): AIIntent {
   const q = query.toLowerCase();
+  if (/\bsapanca\b|\bma[sş]ukiye\b|\bkartepe\b|\bday ?trip\b/.test(q)) return "day_trip";
+  if (/\bisland(s)?\b|\bb[üu]y[üu]kada\b|\bheybeliada\b|\bburgazada\b|\bk[iı]nal[iı]ada\b|\bprinces.? islands\b|\badalar\b/.test(q)) return "island_plan";
+  if (/\basian side\b|\beuropean side\b|\bday on the (asian|european|bosphorus)\b/.test(q)) return "area_plan";
   if (/\b\d+\s*(hour|hr)s?\b|\ball afternoon\b|\ball morning\b|\btonight\b|\bcouple of hours\b/.test(q)) return "create_mini_plan";
   if (/\bturkish\b|\bsay\b.*\bturkish\b|\bhow do i (say|ask)\b|\btell the (taxi|driver|waiter)\b/.test(q)) return "turkish_phrase";
   if (/\bhow much\b|\bprice\b|\bcost\b|\bticket\b|\bfare\b/.test(q)) return "price";
@@ -268,6 +277,79 @@ function historyAnswer(query: string): AIResponse {
   };
 }
 
+function dayTripAnswer(query: string): AIResponse {
+  const q = query.toLowerCase();
+  const named = dayTripIds.map((id) => placeById(id)).find((p) => p && q.includes(p.name.toLowerCase()));
+  if (named) {
+    return {
+      intent: "day_trip",
+      text: `📍 Outside Istanbul (${named.district}). 🚗 ${named.transport[0]?.detail ?? "Best reached by car"}${named.transport[0]?.duration ? ` — ⏱️ ${named.transport[0].duration}` : ""}. 🌲 ${named.whyVisit[0]} 👨‍👩‍👧 ${named.family.level} with kids. 🗓️ Suggested: ${named.duration}. ⚠️ Confirm current road/transport conditions before you go.`,
+      cards: [placeToCard(named)],
+      sourceNote: named.sources[0]?.name,
+    };
+  }
+  const cards = dayTripIds.map((id) => placeToCard(placeById(id)!));
+  return {
+    intent: "day_trip",
+    text: "📍 These are all outside Istanbul (Sapanca in Sakarya Province, Maşukiye and Kartepe in Kocaeli Province) — not a same-day option without planning around traffic. See /day-trips for the full picture.",
+    cards,
+  };
+}
+
+function islandAnswer(query: string): AIResponse {
+  const q = query.toLowerCase();
+  const named = islandIds.map((id) => placeById(id)).find((p) => p && q.includes(p.name.toLowerCase()));
+  if (named) {
+    return { intent: "island_plan", text: `${named.name}: ${named.summary}`, cards: [placeToCard(named), ...named.nearby.slice(0, 3).map((id) => placeToCard(placeById(id)!)).filter((c) => c)] };
+  }
+  const cards = islandIds.map((id) => placeToCard(placeById(id)!));
+  return {
+    intent: "island_plan",
+    text: "The four Princes' Islands with regular ferry service — no private cars on any of them. See /islands for a factual comparison (none ranked as \"best\").",
+    cards,
+  };
+}
+
+const areaPlanStops: Record<RegionGroup, { time: string; id: string }[]> = {
+  asia: [
+    { time: "Morning", id: "uskudar" },
+    { time: "Midday", id: "kuzguncuk" },
+    { time: "Afternoon", id: "beylerbeyi" },
+    { time: "Evening", id: "moda" },
+  ],
+  europe: [
+    { time: "Morning", id: "hagia-sophia" },
+    { time: "Midday", id: "grand-bazaar" },
+    { time: "Afternoon", id: "galata-tower" },
+    { time: "Evening", id: "istiklal-street" },
+  ],
+  bosphorus: [
+    { time: "Morning", id: "ortakoy" },
+    { time: "Midday", id: "bebek" },
+    { time: "Afternoon", id: "kanlica" },
+    { time: "Evening", id: "cengelkoy" },
+  ],
+  islands: [],
+  nature: [
+    { time: "Morning", id: "belgrad-forest" },
+    { time: "Midday", id: "emirgan-park" },
+    { time: "Afternoon", id: "yildiz-park" },
+  ],
+  "day-trip": [],
+};
+
+function areaPlanAnswer(query: string): AIResponse {
+  const q = query.toLowerCase();
+  const key: RegionGroup = /asian side/.test(q) ? "asia" : /european side/.test(q) ? "europe" : "bosphorus";
+  const stops = areaPlanStops[key].map((s) => ({ ...s, place: placeById(s.id) })).filter((s) => s.place);
+  return {
+    intent: "area_plan",
+    text: `A geographically sensible day on the ${regionGroups[key].label}:`,
+    cards: stops.map((s) => ({ ...placeToCard(s.place!), subtitle: `${s.time} · ${s.place!.area}` })),
+    sourceNote: "Route built from this guide's own verified places and their real transport links.",
+  };
+}
+
 function findPlacesAnswer(query: string, context: AIContext): AIResponse {
   const matches = matchPlaces(query);
   if (matches.length === 0) {
@@ -308,6 +390,12 @@ export function askIstanbulAI(query: string, context: AIContext = {}): AIRespons
 
   const intent = detectIntent(trimmed);
   switch (intent) {
+    case "day_trip":
+      return dayTripAnswer(trimmed);
+    case "island_plan":
+      return islandAnswer(trimmed);
+    case "area_plan":
+      return areaPlanAnswer(trimmed);
     case "create_mini_plan":
       return miniPlan(trimmed);
     case "turkish_phrase":
@@ -347,6 +435,7 @@ export const quickPrompts = [
   { label: "📍 Near Me", query: "Find family places near me" },
   { label: "👨‍👩‍👧 Family", query: "Find family-friendly places" },
   { label: "🏛️ Places", query: "Show me historical places" },
+  { label: "🏝️ Islands", query: "Which Princes' Island should we visit?" },
   { label: "🚋 Transport", query: "How do I use Istanbulkart?" },
   { label: "🎟️ Prices", query: "How much is Topkapı Palace?" },
   { label: "🇹🇷 Turkish", query: "How do I say thank you in Turkish?" },
