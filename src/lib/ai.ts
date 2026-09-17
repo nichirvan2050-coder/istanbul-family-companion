@@ -1,0 +1,354 @@
+// Istanbul AI's "brain": a rule-based intent + search engine that runs
+// entirely over this app's own structured data (src/data/*). It never calls
+// an external language model and never invents a place, price, or fact — it
+// can only surface records that already exist in the data files, each
+// carrying its own source. If nothing matches, it says so rather than
+// guessing. This keeps the assistant fast, free to run, privacy-friendly,
+// and impossible to hallucinate with — the trade-off (documented in the
+// implementation report) is that it understands patterns, not open-ended
+// natural language, the way a hosted LLM would.
+
+import { places } from "@/data/places";
+import { areas } from "@/data/areas";
+import { activities } from "@/data/activities";
+import { stays } from "@/data/stays";
+import { turkishPhrases, needThisNowIds } from "@/data/turkish";
+import { fareTable, istanbulkart } from "@/data/transport";
+import { paidAttractions, museumPass } from "@/data/prices";
+import { Place } from "@/data/types";
+
+export type AIIntent =
+  | "find_places"
+  | "nearby_places"
+  | "family_places"
+  | "find_stays"
+  | "find_activities"
+  | "transport"
+  | "price"
+  | "history"
+  | "create_mini_plan"
+  | "turkish_phrase"
+  | "unknown";
+
+export interface AICard {
+  id: string;
+  kind: "place" | "area" | "stay" | "activity" | "phrase";
+  title: string;
+  subtitle?: string;
+  detail?: string;
+  href: string;
+  familyLevel?: string;
+  price?: string;
+  distanceKm?: number;
+}
+
+export interface AIResponse {
+  intent: AIIntent;
+  text: string;
+  cards: AICard[];
+  sourceNote?: string;
+}
+
+export interface AIContext {
+  lastCards?: AICard[];
+  userCoords?: { lat: number; lng: number };
+}
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+}
+
+function placeToCard(p: Place, distanceKm?: number): AICard {
+  return {
+    id: p.id,
+    kind: "place",
+    title: p.name,
+    subtitle: p.area,
+    detail: p.summary,
+    href: `/places/${p.id}`,
+    familyLevel: p.family.level,
+    price: p.ticket.free ? "Free" : "Paid",
+    distanceKm,
+  };
+}
+
+function matchPlaces(query: string): Place[] {
+  const q = query.toLowerCase();
+  const terms = q.split(/\s+/).filter((t) => t.length > 2);
+  return places
+    .map((p) => {
+      const haystack = `${p.name} ${p.area} ${p.district} ${p.summary} ${p.category.join(" ")}`.toLowerCase();
+      let score = 0;
+      for (const t of terms) if (haystack.includes(t)) score += 1;
+      if (haystack.includes(q)) score += 3;
+      return { p, score };
+    })
+    .filter((r) => r.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((r) => r.p);
+}
+
+function detectIntent(query: string): AIIntent {
+  const q = query.toLowerCase();
+  if (/\b\d+\s*(hour|hr)s?\b|\ball afternoon\b|\ball morning\b|\btonight\b|\bcouple of hours\b/.test(q)) return "create_mini_plan";
+  if (/\bturkish\b|\bsay\b.*\bturkish\b|\bhow do i (say|ask)\b|\btell the (taxi|driver|waiter)\b/.test(q)) return "turkish_phrase";
+  if (/\bhow much\b|\bprice\b|\bcost\b|\bticket\b|\bfare\b/.test(q)) return "price";
+  if (/\bhow do (i|we) get\b|\bferry\b|\btram\b|\bmetro\b|\bmarmaray\b|\bbus\b|\btransport\b|\bistanbulkart\b/.test(q)) return "transport";
+  if (/\bstroller\b|\bsmall child\b|\byoung child\b|\bwith (a |our )?(kid|child|daughter|son)\b|\bfamily\b/.test(q)) return "family_places";
+  if (/\bnear me\b|\bnearby\b|\bclose to\b|\baround here\b/.test(q)) return "nearby_places";
+  if (/\bhotel\b|\bstay\b|\baccommodation\b|\bapartment\b/.test(q)) return "find_stays";
+  if (/\baquarium\b|\bmuseum for kids\b|\bplayground\b|\bactivity\b|\bactivities\b/.test(q)) return "find_activities";
+  if (/\bhistory\b|\btell me about\b|\bwhy is\b.*\bimportant\b|\bwhat happened\b/.test(q)) return "history";
+  return "find_places";
+}
+
+function findNamedPlace(query: string): Place | undefined {
+  const q = query.toLowerCase();
+  return places.find((p) => q.includes(p.name.toLowerCase()) || q.includes(p.id.replace(/-/g, " ")));
+}
+
+function miniPlan(query: string): AIResponse {
+  const q = query.toLowerCase();
+  const hoursMatch = q.match(/(\d+)\s*hour/);
+  const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : q.includes("afternoon") ? 4 : q.includes("tonight") ? 2 : 2;
+  const wantsEasy = /\bstroller\b|\bsmall child\b|\byoung child\b|\bnot too much walking\b|\brelax/.test(q);
+  const pool = wantsEasy ? places.filter((p) => p.family.level === "easy") : places;
+  const picks: Place[] = [];
+  const maxStops = Math.max(2, Math.min(5, Math.round(hours / 1)));
+  for (const p of pool) {
+    if (picks.length >= maxStops) break;
+    if (!picks.some((x) => x.area === p.area) || picks.length === 0) picks.push(p);
+  }
+  const cards = picks.map((p) => placeToCard(p));
+  const text =
+    picks.length > 0
+      ? `Here's a realistic ${hours}-hour plan using verified places from the guide${wantsEasy ? ", kept to easy/family-friendly stops" : ""}. Times are approximate — adjust for crowds and breaks.`
+      : "I couldn't build a plan from the current data — try naming an area (e.g. \"2 hours near Sultanahmet\").";
+  return { intent: "create_mini_plan", text, cards, sourceNote: "Built only from places already verified in this guide." };
+}
+
+function turkishAnswer(query: string): AIResponse {
+  const q = query.toLowerCase();
+  const scored = turkishPhrases
+    .map((ph) => {
+      const haystack = `${ph.english} ${ph.turkish}`.toLowerCase();
+      const terms = q.split(/\s+/).filter((t) => t.length > 2);
+      let score = 0;
+      for (const t of terms) if (haystack.includes(t)) score += 1;
+      return { ph, score };
+    })
+    .filter((r) => r.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length === 0) {
+    return {
+      intent: "turkish_phrase",
+      text: "I don't have a verified Turkish phrase that matches that exactly. Here are the most commonly needed phrases instead:",
+      cards: needThisNowIds.map((id) => {
+        const ph = turkishPhrases.find((p) => p.id === id)!;
+        return { id: ph.id, kind: "phrase" as const, title: ph.turkish, subtitle: ph.english, href: "/turkish" };
+      }),
+    };
+  }
+  const top = scored.slice(0, 4).map(({ ph }) => ({ id: ph.id, kind: "phrase" as const, title: ph.turkish, subtitle: ph.english, detail: ph.pronunciation, href: "/turkish" }));
+  return { intent: "turkish_phrase", text: `Turkish: "${scored[0].ph.turkish}" — ${scored[0].ph.english}`, cards: top };
+}
+
+function priceAnswer(query: string): AIResponse {
+  const named = findNamedPlace(query);
+  if (named) {
+    if (named.ticket.free) {
+      return { intent: "price", text: `${named.name} is free to enter.`, cards: [placeToCard(named)] };
+    }
+    const p = named.ticket.price;
+    return {
+      intent: "price",
+      text: p ? `${named.name}: ${p.value}. Source: ${p.sourceName}, checked ${p.lastVerified}.` : `I don't have a verified current price for ${named.name}.`,
+      cards: [placeToCard(named)],
+      sourceNote: p ? `${p.sourceName} — ${p.sourceUrl}` : undefined,
+    };
+  }
+  if (/museum pass/.test(query.toLowerCase())) {
+    return {
+      intent: "price",
+      text: `Museum Pass Istanbul: ${museumPass.price.value}, valid ${museumPass.price.validity}. Source: ${museumPass.price.sourceName}, checked ${museumPass.price.lastVerified}. See /prices for what's included and excluded.`,
+      cards: [],
+    };
+  }
+  return {
+    intent: "price",
+    text: "Name a specific place (e.g. \"How much is Topkapı?\") and I'll give you the verified price and source, or see the full Prices page.",
+    cards: paidAttractions.slice(0, 4).map((a) => ({ id: a.placeId ?? a.name, kind: "place" as const, title: a.name, subtitle: a.price, href: a.placeId ? `/places/${a.placeId}` : "/prices" })),
+  };
+}
+
+function transportAnswer(query: string): AIResponse {
+  const q = query.toLowerCase();
+  if (/istanbulkart/.test(q)) {
+    return { intent: "transport", text: `Istanbulkart: ${istanbulkart.whatIsIt} ${istanbulkart.cardFee.value} (source: ${istanbulkart.cardFee.sourceName}, checked ${istanbulkart.cardFee.lastVerified}).`, cards: [] };
+  }
+  const named = findNamedPlace(query);
+  if (named && named.transport.length > 0) {
+    const t = named.transport[0];
+    return {
+      intent: "transport",
+      text: `To reach ${named.name}: ${t.mode}${t.line ? ` (${t.line})` : ""}${t.to ? ` to ${t.to}` : ""}${t.duration ? `, ${t.duration}` : ""}.`,
+      cards: [placeToCard(named)],
+    };
+  }
+  const row = fareTable.find((f) => q.includes(f.transport.toLowerCase().split(" ")[0]));
+  if (row) {
+    return { intent: "transport", text: `${row.transport}: ${row.fare} (${row.fareType}). Source: ${row.sourceName}, checked — see /transport for details.`, cards: [] };
+  }
+  return { intent: "transport", text: "See /transport for tram, metro, Marmaray, ferry, bus, and Istanbulkart details, or ask about a specific place (e.g. \"How do I get to Kadıköy?\").", cards: [] };
+}
+
+function familyAnswer(query: string, context: AIContext): AIResponse {
+  const base = matchPlaces(query);
+  const pool = (base.length > 0 ? base : places).filter((p) => p.family.level !== "difficult");
+  const sorted = [...pool].sort((a, b) => (a.family.level === "easy" ? -1 : 0) - (b.family.level === "easy" ? -1 : 0));
+  const cards = sorted.slice(0, 6).map((p) => placeToCard(p, context.userCoords && p.coordinates ? haversineKm(context.userCoords, p.coordinates) : undefined));
+  return {
+    intent: "family_places",
+    text: cards.length > 0 ? "Family-friendly options, easiest first:" : "I couldn't find a verified family-friendly match — try /family for the full list.",
+    cards,
+  };
+}
+
+function nearbyAnswer(context: AIContext): AIResponse {
+  if (!context.userCoords) {
+    return { intent: "nearby_places", text: "Location access is off. Search by area instead, or enable location to use \"Near Me.\"", cards: [] };
+  }
+  const withDistance = places
+    .filter((p) => p.coordinates)
+    .map((p) => ({ p, d: haversineKm(context.userCoords!, p.coordinates!) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 6);
+  return {
+    intent: "nearby_places",
+    text: "Closest verified places to your current location:",
+    cards: withDistance.map(({ p, d }) => placeToCard(p, d)),
+  };
+}
+
+function staysAnswer(query: string): AIResponse {
+  const q = query.toLowerCase();
+  const filtered = stays.filter((s) => q.includes(s.area.toLowerCase()) || !/[a-z]/.test(q.replace(/hotel|stay|family|near|the|tram/g, "")));
+  const list = (filtered.length > 0 ? filtered : stays).slice(0, 4);
+  return {
+    intent: "find_stays",
+    text: "Family Stays only shows areas and verified guest ratings — it is not a booking platform, and hotels are never ranked against each other.",
+    cards: list.map((s) => ({ id: s.id, kind: "stay" as const, title: s.name, subtitle: s.area, detail: s.rating?.value ? `${s.rating.sourceName}: ${s.rating.value}/${s.rating.scale}` : "Rating not verified", href: `/stays/${s.id}` })),
+  };
+}
+
+function activitiesAnswer(): AIResponse {
+  return {
+    intent: "find_activities",
+    text: "Verified family activities:",
+    cards: activities.map((a) => ({ id: a.id, kind: "activity" as const, title: a.name, subtitle: a.district, detail: a.price?.value, href: `/activities/${a.id}` })),
+  };
+}
+
+function historyAnswer(query: string): AIResponse {
+  const named = findNamedPlace(query) ?? matchPlaces(query)[0];
+  if (!named) {
+    return { intent: "history", text: "Name a place (e.g. \"Tell me about Hagia Sophia\") and I'll pull its verified history.", cards: [] };
+  }
+  return {
+    intent: "history",
+    text: named.history.length > 320 ? named.history.slice(0, 320) + "…" : named.history,
+    cards: [placeToCard(named)],
+  };
+}
+
+function findPlacesAnswer(query: string, context: AIContext): AIResponse {
+  const matches = matchPlaces(query);
+  if (matches.length === 0) {
+    return {
+      intent: "find_places",
+      text: "I couldn't find a verified match in the guide for that. Try a place name, neighborhood, or category (history, family, bosphorus, market).",
+      cards: [],
+    };
+  }
+  return {
+    intent: "find_places",
+    text: `Found ${matches.length} match${matches.length === 1 ? "" : "es"}:`,
+    cards: matches.slice(0, 6).map((p) => placeToCard(p, context.userCoords && p.coordinates ? haversineKm(context.userCoords, p.coordinates) : undefined)),
+  };
+}
+
+export function askIstanbulAI(query: string, context: AIContext = {}): AIResponse {
+  const trimmed = query.trim();
+  if (!trimmed) return { intent: "unknown", text: "Ask me anything about places, family activities, transport, prices, history, or Turkish phrases.", cards: [] };
+
+  // Simple context awareness: "Which is easier with a stroller?" after a list
+  // of place results scopes the answer to that previous list instead of the
+  // whole database.
+  const isFollowUp = /\b(which|these|those|them|it)\b/i.test(trimmed);
+  const previousPlaces = context.lastCards?.filter((c) => c.kind === "place").map((c) => c.id) ?? [];
+  if (isFollowUp && previousPlaces.length > 0) {
+    const pool = places.filter((p) => previousPlaces.includes(p.id));
+    const sorted = [...pool].sort((a, b) => {
+      const rank = { easy: 0, moderate: 1, difficult: 2 } as const;
+      return rank[a.family.level] - rank[b.family.level];
+    });
+    return {
+      intent: "family_places",
+      text: "From your last results, easiest for a family first:",
+      cards: sorted.map((p) => placeToCard(p)),
+    };
+  }
+
+  const intent = detectIntent(trimmed);
+  switch (intent) {
+    case "create_mini_plan":
+      return miniPlan(trimmed);
+    case "turkish_phrase":
+      return turkishAnswer(trimmed);
+    case "price":
+      return priceAnswer(trimmed);
+    case "transport":
+      return transportAnswer(trimmed);
+    case "family_places":
+      return familyAnswer(trimmed, context);
+    case "nearby_places":
+      return nearbyAnswer(context);
+    case "find_stays":
+      return staysAnswer(trimmed);
+    case "find_activities":
+      return activitiesAnswer();
+    case "history":
+      return historyAnswer(trimmed);
+    default: {
+      const areaMatch = areas.find((a) => trimmed.toLowerCase().includes(a.name.toLowerCase()));
+      if (areaMatch) {
+        return {
+          intent: "find_places",
+          text: `${areaMatch.name}: ${areaMatch.whyFamilies}`,
+          cards: areaMatch.attractions.slice(0, 6).map((id) => {
+            const p = places.find((pl) => pl.id === id)!;
+            return placeToCard(p);
+          }),
+        };
+      }
+      return findPlacesAnswer(trimmed, context);
+    }
+  }
+}
+
+export const quickPrompts = [
+  { label: "📍 Near Me", query: "Find family places near me" },
+  { label: "👨‍👩‍👧 Family", query: "Find family-friendly places" },
+  { label: "🏛️ Places", query: "Show me historical places" },
+  { label: "🚋 Transport", query: "How do I use Istanbulkart?" },
+  { label: "🎟️ Prices", query: "How much is Topkapı Palace?" },
+  { label: "🇹🇷 Turkish", query: "How do I say thank you in Turkish?" },
+  { label: "⏱️ 2-Hour Plan", query: "We have two hours, what should we do?" },
+];
