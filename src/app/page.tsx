@@ -16,14 +16,17 @@ export default function Home() {
       {/* Hero */}
       <section
         className="relative overflow-hidden px-5 pb-10 pt-14 text-white"
-        style={{ background: "linear-gradient(160deg, var(--bosphorus-dark), var(--bosphorus) 55%, var(--terracotta) 130%)" }}
+        style={{ background: "linear-gradient(150deg, var(--bosphorus-dark) 0%, var(--bosphorus) 40%, var(--terracotta) 78%, var(--gold) 115%)" }}
       >
-        <svg className="pointer-events-none absolute -right-10 -top-10 opacity-20" width="220" height="220" viewBox="0 0 100 100" aria-hidden>
+        <svg className="pointer-events-none absolute -right-12 -top-12 opacity-30" width="220" height="220" viewBox="0 0 100 100" aria-hidden>
           <circle cx="50" cy="50" r="48" fill="none" stroke="white" strokeWidth="1.5" />
           <circle cx="50" cy="50" r="34" fill="none" stroke="white" strokeWidth="1.5" />
           <circle cx="50" cy="50" r="20" fill="none" stroke="white" strokeWidth="1.5" />
         </svg>
-        <p className="text-sm font-medium tracking-wide opacity-90">Kurdistan Next family trip guide</p>
+        <svg className="pointer-events-none absolute -bottom-16 -left-14 opacity-25" width="200" height="200" viewBox="0 0 100 100" aria-hidden>
+          <circle cx="50" cy="50" r="50" fill="#FFC233" />
+        </svg>
+        <p className="text-sm font-medium tracking-wide opacity-90">A family trip companion</p>
         <h1 className="font-display mt-1 text-5xl font-bold tracking-tight">ISTANBUL</h1>
         <p className="font-display mt-2 text-xl">See the city. Understand its story.</p>
         <p className="mt-3 text-sm opacity-90">10 Days • Family • History • Transport • AI</p>

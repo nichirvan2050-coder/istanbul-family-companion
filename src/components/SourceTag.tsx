@@ -1,9 +1,9 @@
 import { VerificationStatus } from "@/data/types";
 
 const statusConfig: Record<VerificationStatus, { emoji: string; label: string; color: string }> = {
-  verified: { emoji: "🟢", label: "Verified", color: "#2f7d5a" },
-  check: { emoji: "🟡", label: "Check before visiting", color: "#b8912f" },
-  unverified: { emoji: "🔴", label: "Not verified", color: "#b34638" },
+  verified: { emoji: "🟢", label: "Verified", color: "#1a9c63" },
+  check: { emoji: "🟡", label: "Check before visiting", color: "#c98a00" },
+  unverified: { emoji: "🔴", label: "Not verified", color: "#d84a35" },
 };
 
 export function VerificationBadge({ status }: { status: VerificationStatus }) {

@@ -56,7 +56,7 @@ export default function PricesPage() {
               key={a.name}
               href={a.placeId ? `/places/${a.placeId}` : "#"}
               className="rounded-full px-3 py-1.5 text-sm"
-              style={{ background: "rgba(47,125,90,0.1)", color: "var(--success)" }}
+              style={{ background: "rgba(31,174,110,0.14)", color: "var(--success)" }}
             >
               {a.name}
             </Link>
