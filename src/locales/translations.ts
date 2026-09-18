@@ -90,6 +90,16 @@ const en: Dict = {
   place_evidence: "Evidence",
 
   daytrip_outside_istanbul: "Outside Istanbul",
+
+  ai_widget_open_aria: "Open Istanbul AI",
+  ai_widget_title: "✨ Istanbul AI",
+  ai_widget_close_aria: "Close",
+  ai_widget_intro: "Ask about places, family activities, transport, prices, history, or Turkish phrases. Answers come only from this guide's own verified data.",
+  ai_widget_placeholder: "What can we visit near here with our daughter?",
+  ai_widget_ask: "Ask",
+  ai_widget_mic_start_aria: "Tap to speak",
+  ai_widget_mic_stop_aria: "Stop listening",
+  ai_widget_source_prefix: "Source:",
 };
 
 const ar: Dict = {
@@ -170,6 +180,16 @@ const ar: Dict = {
   place_evidence: "المصادر",
 
   daytrip_outside_istanbul: "خارج إسطنبول",
+
+  ai_widget_open_aria: "افتح ذكاء إسطنبول",
+  ai_widget_title: "✨ ذكاء إسطنبول",
+  ai_widget_close_aria: "إغلاق",
+  ai_widget_intro: "اسأل عن الأماكن، الأنشطة العائلية، المواصلات، الأسعار، التاريخ، أو العبارات التركية. الإجابات تأتي فقط من البيانات الموثقة في هذا الدليل.",
+  ai_widget_placeholder: "ماذا يمكننا زيارته بالقرب من هنا مع ابنتنا؟",
+  ai_widget_ask: "اسأل",
+  ai_widget_mic_start_aria: "اضغط للتحدث",
+  ai_widget_mic_stop_aria: "إيقاف الاستماع",
+  ai_widget_source_prefix: "المصدر:",
 };
 
 const ku: Dict = {
@@ -250,6 +270,16 @@ const ku: Dict = {
   place_evidence: "سەرچاوەکان",
 
   daytrip_outside_istanbul: "دەرەوەی ئیستەنبوڵ",
+
+  ai_widget_open_aria: "کردنەوەی زیرەکی ئیستەنبوڵ",
+  ai_widget_title: "✨ زیرەکی ئیستەنبوڵ",
+  ai_widget_close_aria: "داخستن",
+  ai_widget_intro: "پرسیار دەربارەی شوێنەکان، چالاکی خێزانی، گواستنەوە، نرخەکان، مێژوو، یان دەستەواژەی تورکی بکە. وەڵامەکان تەنها لە داتای پشتڕاستکراوەی ئەم ڕێنماییە دێن.",
+  ai_widget_placeholder: "لەگەڵ کچەکەمان چی دەتوانین لێرە نزیک سەردانی بکەین؟",
+  ai_widget_ask: "پرسیار",
+  ai_widget_mic_start_aria: "دەست لێبدە بۆ قسەکردن",
+  ai_widget_mic_stop_aria: "وەستاندنی گوێگرتن",
+  ai_widget_source_prefix: "سەرچاوە:",
 };
 
 export const translations: Record<Locale, Dict> = { en, ar, ku };

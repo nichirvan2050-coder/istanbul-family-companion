@@ -7,7 +7,7 @@ import { quickPrompts } from "@/lib/ai";
 import { useLocale } from "@/lib/i18n";
 
 export default function Home() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   const familyQuickAccess = [
     { label: t("home_family_places"), icon: "👨‍👩‍👧", href: "/places?family=easy" },
@@ -92,12 +92,12 @@ export default function Home() {
           <div className="mt-4 flex flex-wrap gap-2">
             {quickPrompts.map((q) => (
               <OpenAIButton
-                key={q.label}
+                key={q.query}
                 query={q.query}
                 className="rounded-full border bg-white/70 px-3 py-1.5 text-sm"
                 style={{ borderColor: "var(--border)" }}
               >
-                {q.label}
+                {q.labels[locale]}
               </OpenAIButton>
             ))}
           </div>

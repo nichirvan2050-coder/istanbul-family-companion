@@ -7,6 +7,15 @@
 // and impossible to hallucinate with — the trade-off (documented in the
 // implementation report) is that it understands patterns, not open-ended
 // natural language, the way a hosted LLM would.
+//
+// Localization note: the assistant's own sentences are localized via
+// ./aiStrings.ts, and any place data plugged into them is localized via
+// ./placeTranslations.ts's localizePlace(). Intent DETECTION (matching what
+// the user typed) still runs on English keywords/place names only — a
+// free-text query typed in Arabic or Kurdish won't be understood, only the
+// *response* comes back in the selected language. Quick-prompt buttons work
+// around this by keeping an internal English query string with a translated
+// label.
 
 import { places, placeById } from "@/data/places";
 import { areas } from "@/data/areas";
@@ -16,8 +25,11 @@ import { stations } from "@/data/stations";
 import { turkishPhrases, needThisNowIds } from "@/data/turkish";
 import { fareTable, istanbulkart } from "@/data/transport";
 import { paidAttractions, museumPass } from "@/data/prices";
-import { Place, Station, regionGroups, RegionGroup } from "@/data/types";
+import { Place, Station, TurkishPhrase, RegionGroup } from "@/data/types";
 import { haversineKm } from "@/lib/geo";
+import { localizePlace } from "@/data/placeTranslations";
+import { Locale } from "@/locales/translations";
+import { aiStrings, regionGroupLabels } from "@/lib/aiStrings";
 
 export type AIIntent =
   | "find_places"
@@ -74,18 +86,42 @@ function stationToCard(s: Station, distanceKm?: number): AICard {
   };
 }
 
-function placeToCard(p: Place, distanceKm?: number): AICard {
+function placeToCard(p: Place, locale: Locale, distanceKm?: number): AICard {
+  const lp = localizePlace(p, locale);
+  const s = aiStrings[locale];
   return {
     id: p.id,
     kind: "place",
-    title: p.name,
-    subtitle: p.area,
-    detail: p.summary,
+    title: lp.name,
+    subtitle: lp.area,
+    detail: lp.summary,
     href: `/places/${p.id}`,
-    familyLevel: p.family.level,
-    price: p.ticket.free ? "Free" : "Paid",
+    familyLevel: s.familyLevel(p.family.level),
+    price: p.ticket.free ? s.free : s.paid,
     distanceKm,
   };
+}
+
+function phraseMeaning(ph: TurkishPhrase, locale: Locale): string {
+  if (locale === "ar") return ph.arabic;
+  if (locale === "ku") return ph.kurdish;
+  return ph.english;
+}
+
+function timeLabel(time: string, locale: Locale): string {
+  const s = aiStrings[locale];
+  switch (time) {
+    case "Morning":
+      return s.morning;
+    case "Midday":
+      return s.midday;
+    case "Afternoon":
+      return s.afternoon;
+    case "Evening":
+      return s.evening;
+    default:
+      return time;
+  }
 }
 
 function matchPlaces(query: string): Place[] {
@@ -126,7 +162,8 @@ function findNamedPlace(query: string): Place | undefined {
   return places.find((p) => q.includes(p.name.toLowerCase()) || q.includes(p.id.replace(/-/g, " ")));
 }
 
-function miniPlan(query: string): AIResponse {
+function miniPlan(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
   const hoursMatch = q.match(/(\d+)\s*hour/);
   const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : q.includes("afternoon") ? 4 : q.includes("tonight") ? 2 : 2;
@@ -138,15 +175,13 @@ function miniPlan(query: string): AIResponse {
     if (picks.length >= maxStops) break;
     if (!picks.some((x) => x.area === p.area) || picks.length === 0) picks.push(p);
   }
-  const cards = picks.map((p) => placeToCard(p));
-  const text =
-    picks.length > 0
-      ? `Here's a realistic ${hours}-hour plan using verified places from the guide${wantsEasy ? ", kept to easy/family-friendly stops" : ""}. Times are approximate — adjust for crowds and breaks.`
-      : "I couldn't build a plan from the current data — try naming an area (e.g. \"2 hours near Sultanahmet\").";
+  const cards = picks.map((p) => placeToCard(p, locale));
+  const text = picks.length > 0 ? s.miniPlan(hours, wantsEasy) : s.miniPlanNoData;
   return { intent: "create_mini_plan", text, cards, sourceNote: "Built only from places already verified in this guide." };
 }
 
-function turkishAnswer(query: string): AIResponse {
+function turkishAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
   const scored = turkishPhrases
     .map((ph) => {
@@ -162,81 +197,87 @@ function turkishAnswer(query: string): AIResponse {
   if (scored.length === 0) {
     return {
       intent: "turkish_phrase",
-      text: "I don't have a verified Turkish phrase that matches that exactly. Here are the most commonly needed phrases instead:",
+      text: s.turkishNoMatch,
       cards: needThisNowIds.map((id) => {
         const ph = turkishPhrases.find((p) => p.id === id)!;
-        return { id: ph.id, kind: "phrase" as const, title: ph.turkish, subtitle: ph.english, href: "/turkish" };
+        return { id: ph.id, kind: "phrase" as const, title: ph.turkish, subtitle: phraseMeaning(ph, locale), href: "/turkish" };
       }),
     };
   }
-  const top = scored.slice(0, 4).map(({ ph }) => ({ id: ph.id, kind: "phrase" as const, title: ph.turkish, subtitle: ph.english, detail: ph.pronunciation, href: "/turkish" }));
-  return { intent: "turkish_phrase", text: `Turkish: "${scored[0].ph.turkish}" — ${scored[0].ph.english}`, cards: top };
+  const top = scored.slice(0, 4).map(({ ph }) => ({ id: ph.id, kind: "phrase" as const, title: ph.turkish, subtitle: phraseMeaning(ph, locale), detail: ph.pronunciation, href: "/turkish" }));
+  return { intent: "turkish_phrase", text: s.turkishMatch(scored[0].ph.turkish, phraseMeaning(scored[0].ph, locale)), cards: top };
 }
 
-function priceAnswer(query: string): AIResponse {
+function priceAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const named = findNamedPlace(query);
   if (named) {
+    const lp = localizePlace(named, locale);
     if (named.ticket.free) {
-      return { intent: "price", text: `${named.name} is free to enter.`, cards: [placeToCard(named)] };
+      return { intent: "price", text: s.priceFree(lp.name), cards: [placeToCard(named, locale)] };
     }
     const p = named.ticket.price;
     return {
       intent: "price",
-      text: p ? `${named.name}: ${p.value}. Source: ${p.sourceName}, checked ${p.lastVerified}.` : `I don't have a verified current price for ${named.name}.`,
-      cards: [placeToCard(named)],
+      text: p ? s.priceKnown(lp.name, p.value, p.sourceName, p.lastVerified) : s.priceUnverified(lp.name),
+      cards: [placeToCard(named, locale)],
       sourceNote: p ? `${p.sourceName} — ${p.sourceUrl}` : undefined,
     };
   }
   if (/museum pass/.test(query.toLowerCase())) {
     return {
       intent: "price",
-      text: `Museum Pass Istanbul: ${museumPass.price.value}, valid ${museumPass.price.validity}. Source: ${museumPass.price.sourceName}, checked ${museumPass.price.lastVerified}. See /prices for what's included and excluded.`,
+      text: s.museumPass(museumPass.price.value, museumPass.price.validity, museumPass.price.sourceName, museumPass.price.lastVerified),
       cards: [],
     };
   }
   return {
     intent: "price",
-    text: "Name a specific place (e.g. \"How much is Topkapı?\") and I'll give you the verified price and source, or see the full Prices page.",
+    text: s.priceGeneric,
     cards: paidAttractions.slice(0, 4).map((a) => ({ id: a.placeId ?? a.name, kind: "place" as const, title: a.name, subtitle: a.price, href: a.placeId ? `/places/${a.placeId}` : "/prices" })),
   };
 }
 
-function transportAnswer(query: string): AIResponse {
+function transportAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
   if (/istanbulkart/.test(q)) {
-    return { intent: "transport", text: `Istanbulkart: ${istanbulkart.whatIsIt} ${istanbulkart.cardFee.value} (source: ${istanbulkart.cardFee.sourceName}, checked ${istanbulkart.cardFee.lastVerified}).`, cards: [] };
+    return { intent: "transport", text: s.istanbulkart(istanbulkart.whatIsIt, istanbulkart.cardFee.value, istanbulkart.cardFee.sourceName, istanbulkart.cardFee.lastVerified), cards: [] };
   }
   const named = findNamedPlace(query);
   if (named && named.transport.length > 0) {
+    const lp = localizePlace(named, locale);
     const t = named.transport[0];
     return {
       intent: "transport",
-      text: `To reach ${named.name}: ${t.mode}${t.line ? ` (${t.line})` : ""}${t.to ? ` to ${t.to}` : ""}${t.duration ? `, ${t.duration}` : ""}.`,
-      cards: [placeToCard(named)],
+      text: s.transportToPlace(lp.name, t.mode, t.line, t.to, t.duration),
+      cards: [placeToCard(named, locale)],
     };
   }
   const row = fareTable.find((f) => q.includes(f.transport.toLowerCase().split(" ")[0]));
   if (row) {
-    return { intent: "transport", text: `${row.transport}: ${row.fare} (${row.fareType}). Source: ${row.sourceName}, checked — see /transport for details.`, cards: [] };
+    return { intent: "transport", text: s.transportFareRow(row.transport, row.fare, row.fareType, row.sourceName), cards: [] };
   }
-  return { intent: "transport", text: "See /transport for tram, metro, Marmaray, ferry, bus, and Istanbulkart details, or ask about a specific place (e.g. \"How do I get to Kadıköy?\").", cards: [] };
+  return { intent: "transport", text: s.transportGeneric, cards: [] };
 }
 
-function familyAnswer(query: string, context: AIContext): AIResponse {
+function familyAnswer(query: string, context: AIContext, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const base = matchPlaces(query);
   const pool = (base.length > 0 ? base : places).filter((p) => p.family.level !== "difficult");
   const sorted = [...pool].sort((a, b) => (a.family.level === "easy" ? -1 : 0) - (b.family.level === "easy" ? -1 : 0));
-  const cards = sorted.slice(0, 6).map((p) => placeToCard(p, context.userCoords && p.coordinates ? haversineKm(context.userCoords, p.coordinates) : undefined));
+  const cards = sorted.slice(0, 6).map((p) => placeToCard(p, locale, context.userCoords && p.coordinates ? haversineKm(context.userCoords, p.coordinates) : undefined));
   return {
     intent: "family_places",
-    text: cards.length > 0 ? "Family-friendly options, easiest first:" : "I couldn't find a verified family-friendly match — try /family for the full list.",
+    text: cards.length > 0 ? s.familyOptions : s.familyNoMatch,
     cards,
   };
 }
 
-function nearbyAnswer(query: string, context: AIContext): AIResponse {
+function nearbyAnswer(query: string, context: AIContext, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   if (!context.userCoords) {
-    return { intent: "nearby_places", text: "Location access is off. Search by area instead, or enable location to use \"Near Me.\"", cards: [] };
+    return { intent: "nearby_places", text: s.nearbyLocationOff, cards: [] };
   }
   const q = query.toLowerCase();
   const wantsStationOnly = /\bstation\b|\btransit\b|\btram stop\b|\bmetro stop\b|\bferry (pier|dock)\b/.test(q);
@@ -246,88 +287,100 @@ function nearbyAnswer(query: string, context: AIContext): AIResponse {
     .map((p) => ({ p, d: haversineKm(context.userCoords!, p.coordinates!) }))
     .sort((a, b) => a.d - b.d);
   const nearestStations = stations
-    .map((s) => ({ s, d: haversineKm(context.userCoords!, s.coordinates) }))
+    .map((st) => ({ st, d: haversineKm(context.userCoords!, st.coordinates) }))
     .sort((a, b) => a.d - b.d);
 
   if (wantsStationOnly) {
     return {
       intent: "nearby_places",
-      text: "Closest transit stations to your current location:",
-      cards: nearestStations.slice(0, 6).map(({ s, d }) => stationToCard(s, d)),
-      sourceNote: "Station coordinates are approximate (street-block accuracy) — confirm exact platform/exit locally.",
+      text: s.nearbyStationsOnly,
+      cards: nearestStations.slice(0, 6).map(({ st, d }) => stationToCard(st, d)),
+      sourceNote: s.nearbyStationsNote,
     };
   }
 
-  const placeCards = nearestPlaces.slice(0, 5).map(({ p, d }) => placeToCard(p, d));
-  const stationCards = nearestStations.slice(0, 3).map(({ s, d }) => stationToCard(s, d));
+  const placeCards = nearestPlaces.slice(0, 5).map(({ p, d }) => placeToCard(p, locale, d));
+  const stationCards = nearestStations.slice(0, 3).map(({ st, d }) => stationToCard(st, d));
   return {
     intent: "nearby_places",
-    text: "Closest verified places to your current location, plus the nearest transit:",
+    text: s.nearbyBoth,
     cards: [...placeCards, ...stationCards],
-    sourceNote: "Station coordinates are approximate (street-block accuracy) — confirm exact platform/exit locally. See /near-me for the full sorted list.",
+    sourceNote: s.nearbyBothNote,
   };
 }
 
-function staysAnswer(query: string): AIResponse {
+function staysAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
-  const filtered = stays.filter((s) => q.includes(s.area.toLowerCase()) || !/[a-z]/.test(q.replace(/hotel|stay|family|near|the|tram/g, "")));
+  const filtered = stays.filter((st) => q.includes(st.area.toLowerCase()) || !/[a-z]/.test(q.replace(/hotel|stay|family|near|the|tram/g, "")));
   const list = (filtered.length > 0 ? filtered : stays).slice(0, 4);
   return {
     intent: "find_stays",
-    text: "Family Stays only shows areas and verified guest ratings — it is not a booking platform, and hotels are never ranked against each other.",
-    cards: list.map((s) => ({ id: s.id, kind: "stay" as const, title: s.name, subtitle: s.area, detail: s.rating?.value ? `${s.rating.sourceName}: ${s.rating.value}/${s.rating.scale}` : "Rating not verified", href: `/stays/${s.id}` })),
+    text: s.staysIntro,
+    cards: list.map((st) => ({ id: st.id, kind: "stay" as const, title: st.name, subtitle: st.area, detail: st.rating?.value ? `${st.rating.sourceName}: ${st.rating.value}/${st.rating.scale}` : s.staysRatingUnverified, href: `/stays/${st.id}` })),
   };
 }
 
-function activitiesAnswer(): AIResponse {
+function activitiesAnswer(locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   return {
     intent: "find_activities",
-    text: "Verified family activities:",
+    text: s.activitiesIntro,
     cards: activities.map((a) => ({ id: a.id, kind: "activity" as const, title: a.name, subtitle: a.district, detail: a.price?.value, href: `/activities/${a.id}` })),
   };
 }
 
-function historyAnswer(query: string): AIResponse {
+function historyAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const named = findNamedPlace(query) ?? matchPlaces(query)[0];
   if (!named) {
-    return { intent: "history", text: "Name a place (e.g. \"Tell me about Hagia Sophia\") and I'll pull its verified history.", cards: [] };
+    return { intent: "history", text: s.historyPrompt, cards: [] };
   }
+  const lp = localizePlace(named, locale);
   return {
     intent: "history",
-    text: named.history.length > 320 ? named.history.slice(0, 320) + "…" : named.history,
-    cards: [placeToCard(named)],
+    text: lp.history.length > 320 ? lp.history.slice(0, 320) + "…" : lp.history,
+    cards: [placeToCard(named, locale)],
   };
 }
 
-function dayTripAnswer(query: string): AIResponse {
+function dayTripAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
   const named = dayTripIds.map((id) => placeById(id)).find((p) => p && q.includes(p.name.toLowerCase()));
   if (named) {
+    const lp = localizePlace(named, locale);
     return {
       intent: "day_trip",
-      text: `📍 Outside Istanbul (${named.district}). 🚗 ${named.transport[0]?.detail ?? "Best reached by car"}${named.transport[0]?.duration ? ` — ⏱️ ${named.transport[0].duration}` : ""}. 🌲 ${named.whyVisit[0]} 👨‍👩‍👧 ${named.family.level} with kids. 🗓️ Suggested: ${named.duration}. ⚠️ Confirm current road/transport conditions before you go.`,
-      cards: [placeToCard(named)],
+      text: s.dayTripNamed(named.district, named.transport[0]?.detail ?? "Best reached by car", named.transport[0]?.duration, lp.whyVisit[0], s.familyLevel(named.family.level), lp.duration),
+      cards: [placeToCard(named, locale)],
       sourceNote: named.sources[0]?.name,
     };
   }
-  const cards = dayTripIds.map((id) => placeToCard(placeById(id)!));
+  const cards = dayTripIds.map((id) => placeToCard(placeById(id)!, locale));
   return {
     intent: "day_trip",
-    text: "📍 These are all outside Istanbul (Sapanca in Sakarya Province, Maşukiye and Kartepe in Kocaeli Province) — not a same-day option without planning around traffic. See /day-trips for the full picture.",
+    text: s.dayTripGeneric,
     cards,
   };
 }
 
-function islandAnswer(query: string): AIResponse {
+function islandAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
   const named = islandIds.map((id) => placeById(id)).find((p) => p && q.includes(p.name.toLowerCase()));
   if (named) {
-    return { intent: "island_plan", text: `${named.name}: ${named.summary}`, cards: [placeToCard(named), ...named.nearby.slice(0, 3).map((id) => placeToCard(placeById(id)!)).filter((c) => c)] };
+    const lp = localizePlace(named, locale);
+    return {
+      intent: "island_plan",
+      text: s.islandNamed(lp.name, lp.summary),
+      cards: [placeToCard(named, locale), ...named.nearby.slice(0, 3).map((id) => placeToCard(placeById(id)!, locale)).filter((c) => c)],
+    };
   }
-  const cards = islandIds.map((id) => placeToCard(placeById(id)!));
+  const cards = islandIds.map((id) => placeToCard(placeById(id)!, locale));
   return {
     intent: "island_plan",
-    text: "The four Princes' Islands with regular ferry service — no private cars on any of them. See /islands for a factual comparison (none ranked as \"best\").",
+    text: s.islandGeneric,
     cards,
   };
 }
@@ -360,37 +413,43 @@ const areaPlanStops: Record<RegionGroup, { time: string; id: string }[]> = {
   "day-trip": [],
 };
 
-function areaPlanAnswer(query: string): AIResponse {
+function areaPlanAnswer(query: string, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const q = query.toLowerCase();
   const key: RegionGroup = /asian side/.test(q) ? "asia" : /european side/.test(q) ? "europe" : "bosphorus";
-  const stops = areaPlanStops[key].map((s) => ({ ...s, place: placeById(s.id) })).filter((s) => s.place);
+  const stops = areaPlanStops[key].map((st) => ({ ...st, place: placeById(st.id) })).filter((st) => st.place);
   return {
     intent: "area_plan",
-    text: `A geographically sensible day on the ${regionGroups[key].label}:`,
-    cards: stops.map((s) => ({ ...placeToCard(s.place!), subtitle: `${s.time} · ${s.place!.area}` })),
-    sourceNote: "Route built from this guide's own verified places and their real transport links.",
+    text: s.areaPlanText(regionGroupLabels[locale][key]),
+    cards: stops.map((st) => {
+      const lp = localizePlace(st.place!, locale);
+      return { ...placeToCard(st.place!, locale), subtitle: `${timeLabel(st.time, locale)} · ${lp.area}` };
+    }),
+    sourceNote: s.areaPlanSourceNote,
   };
 }
 
-function findPlacesAnswer(query: string, context: AIContext): AIResponse {
+function findPlacesAnswer(query: string, context: AIContext, locale: Locale): AIResponse {
+  const s = aiStrings[locale];
   const matches = matchPlaces(query);
   if (matches.length === 0) {
     return {
       intent: "find_places",
-      text: "I couldn't find a verified match in the guide for that. Try a place name, neighborhood, or category (history, family, bosphorus, market).",
+      text: s.findPlacesNoMatch,
       cards: [],
     };
   }
   return {
     intent: "find_places",
-    text: `Found ${matches.length} match${matches.length === 1 ? "" : "es"}:`,
-    cards: matches.slice(0, 6).map((p) => placeToCard(p, context.userCoords && p.coordinates ? haversineKm(context.userCoords, p.coordinates) : undefined)),
+    text: s.findPlacesFound(matches.length),
+    cards: matches.slice(0, 6).map((p) => placeToCard(p, locale, context.userCoords && p.coordinates ? haversineKm(context.userCoords, p.coordinates) : undefined)),
   };
 }
 
-export function askIstanbulAI(query: string, context: AIContext = {}): AIResponse {
+export function askIstanbulAI(query: string, context: AIContext = {}, locale: Locale = "en"): AIResponse {
+  const s = aiStrings[locale];
   const trimmed = query.trim();
-  if (!trimmed) return { intent: "unknown", text: "Ask me anything about places, family activities, transport, prices, history, or Turkish phrases.", cards: [] };
+  if (!trimmed) return { intent: "unknown", text: s.emptyQuery, cards: [] };
 
   // Simple context awareness: "Which is easier with a stroller?" after a list
   // of place results scopes the answer to that previous list instead of the
@@ -405,61 +464,61 @@ export function askIstanbulAI(query: string, context: AIContext = {}): AIRespons
     });
     return {
       intent: "family_places",
-      text: "From your last results, easiest for a family first:",
-      cards: sorted.map((p) => placeToCard(p)),
+      text: s.followUpEasiest,
+      cards: sorted.map((p) => placeToCard(p, locale)),
     };
   }
 
   const intent = detectIntent(trimmed);
   switch (intent) {
     case "day_trip":
-      return dayTripAnswer(trimmed);
+      return dayTripAnswer(trimmed, locale);
     case "island_plan":
-      return islandAnswer(trimmed);
+      return islandAnswer(trimmed, locale);
     case "area_plan":
-      return areaPlanAnswer(trimmed);
+      return areaPlanAnswer(trimmed, locale);
     case "create_mini_plan":
-      return miniPlan(trimmed);
+      return miniPlan(trimmed, locale);
     case "turkish_phrase":
-      return turkishAnswer(trimmed);
+      return turkishAnswer(trimmed, locale);
     case "price":
-      return priceAnswer(trimmed);
+      return priceAnswer(trimmed, locale);
     case "transport":
-      return transportAnswer(trimmed);
+      return transportAnswer(trimmed, locale);
     case "family_places":
-      return familyAnswer(trimmed, context);
+      return familyAnswer(trimmed, context, locale);
     case "nearby_places":
-      return nearbyAnswer(trimmed, context);
+      return nearbyAnswer(trimmed, context, locale);
     case "find_stays":
-      return staysAnswer(trimmed);
+      return staysAnswer(trimmed, locale);
     case "find_activities":
-      return activitiesAnswer();
+      return activitiesAnswer(locale);
     case "history":
-      return historyAnswer(trimmed);
+      return historyAnswer(trimmed, locale);
     default: {
       const areaMatch = areas.find((a) => trimmed.toLowerCase().includes(a.name.toLowerCase()));
       if (areaMatch) {
         return {
           intent: "find_places",
-          text: `${areaMatch.name}: ${areaMatch.whyFamilies}`,
+          text: s.areaMatchText(areaMatch.name, areaMatch.whyFamilies),
           cards: areaMatch.attractions.slice(0, 6).map((id) => {
             const p = places.find((pl) => pl.id === id)!;
-            return placeToCard(p);
+            return placeToCard(p, locale);
           }),
         };
       }
-      return findPlacesAnswer(trimmed, context);
+      return findPlacesAnswer(trimmed, context, locale);
     }
   }
 }
 
-export const quickPrompts = [
-  { label: "📍 Near Me", query: "What's near me right now?" },
-  { label: "👨‍👩‍👧 Family", query: "Find family-friendly places" },
-  { label: "🏛️ Places", query: "Show me historical places" },
-  { label: "🏝️ Islands", query: "Which Princes' Island should we visit?" },
-  { label: "🚋 Transport", query: "How do I use Istanbulkart?" },
-  { label: "🎟️ Prices", query: "How much is Topkapı Palace?" },
-  { label: "🇹🇷 Turkish", query: "How do I say thank you in Turkish?" },
-  { label: "⏱️ 2-Hour Plan", query: "We have two hours, what should we do?" },
+export const quickPrompts: { query: string; labels: Record<Locale, string> }[] = [
+  { query: "What's near me right now?", labels: { en: "📍 Near Me", ar: "📍 بالقرب مني", ku: "📍 لە نزیکم" } },
+  { query: "Find family-friendly places", labels: { en: "👨‍👩‍👧 Family", ar: "👨‍👩‍👧 العائلة", ku: "👨‍👩‍👧 خێزان" } },
+  { query: "Show me historical places", labels: { en: "🏛️ Places", ar: "🏛️ الأماكن", ku: "🏛️ شوێنەکان" } },
+  { query: "Which Princes' Island should we visit?", labels: { en: "🏝️ Islands", ar: "🏝️ الجزر", ku: "🏝️ دوورگەکان" } },
+  { query: "How do I use Istanbulkart?", labels: { en: "🚋 Transport", ar: "🚋 المواصلات", ku: "🚋 گواستنەوە" } },
+  { query: "How much is Topkapı Palace?", labels: { en: "🎟️ Prices", ar: "🎟️ الأسعار", ku: "🎟️ نرخەکان" } },
+  { query: "How do I say thank you in Turkish?", labels: { en: "🇹🇷 Turkish", ar: "🇹🇷 التركية", ku: "🇹🇷 تورکی" } },
+  { query: "We have two hours, what should we do?", labels: { en: "⏱️ 2-Hour Plan", ar: "⏱️ خطة ساعتين", ku: "⏱️ پلانی ٢ کاتژمێر" } },
 ];

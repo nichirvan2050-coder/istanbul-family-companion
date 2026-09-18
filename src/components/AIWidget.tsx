@@ -3,8 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { askIstanbulAI, quickPrompts, AICard, AIResponse } from "@/lib/ai";
+import { aiStrings } from "@/lib/aiStrings";
 import { canListen, listen, speak, canSpeak } from "@/lib/speech";
 import { formatDistance } from "@/lib/geo";
+import { useLocale } from "@/lib/i18n";
+import { Locale } from "@/locales/translations";
+
+// No dedicated Kurdish voice/speech-recognition is generally available in
+// browsers; Arabic shares the script and is closer than an English voice
+// trying to read Arabic-script text, so it's used as a best-effort fallback.
+const speechLang: Record<Locale, string> = { en: "en-US", ar: "ar-SA", ku: "ar-SA" };
 
 interface Turn {
   query: string;
@@ -44,6 +52,8 @@ function CardRow({ card }: { card: AICard }) {
 }
 
 export default function AIWidget() {
+  const { t, locale } = useLocale();
+  const s = aiStrings[locale];
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -60,20 +70,20 @@ export default function AIWidget() {
     function handler(e: Event) {
       setOpen(true);
       const q = (e as CustomEvent<{ query?: string }>).detail?.query;
-      if (q) runQuery(q);
+      if (q) runQuery(q, quickPrompts.find((p) => p.query === q)?.labels[locale]);
     }
     window.addEventListener("my-istanbul:open-ai", handler);
     return () => window.removeEventListener("my-istanbul:open-ai", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turns, coords]);
 
-  function runQuery(q: string) {
+  function runQuery(q: string, displayLabel?: string) {
     if (!q.trim()) return;
     const lastCards = turns[turns.length - 1]?.response.cards;
-    const response = askIstanbulAI(q, { lastCards, userCoords: coords });
-    setTurns((t) => [...t, { query: q, response }]);
+    const response = askIstanbulAI(q, { lastCards, userCoords: coords }, locale);
+    setTurns((prev) => [...prev, { query: displayLabel ?? q, response }]);
     setInput("");
-    if (canSpeak() && response.text) speak(response.text, "en-US");
+    if (canSpeak() && response.text) speak(response.text, speechLang[locale]);
   }
 
   function requestLocation(then?: (c: { lat: number; lng: number }) => void) {
@@ -99,7 +109,7 @@ export default function AIWidget() {
       return;
     }
     if (!canListen()) {
-      setTurns((t) => [...t, { query: "🎙️", response: { intent: "unknown", text: "Voice input isn't supported in this browser — try typing instead.", cards: [] } }]);
+      setTurns((prev) => [...prev, { query: "🎙️", response: { intent: "unknown", text: s.voiceNotSupported, cards: [] } }]);
       return;
     }
     setListening(true);
@@ -109,7 +119,7 @@ export default function AIWidget() {
         runQuery(transcript);
       },
       () => setListening(false),
-      "en-US"
+      speechLang[locale]
     );
     stopListenRef.current = stop;
   }
@@ -121,17 +131,17 @@ export default function AIWidget() {
         onClick={() => setOpen(true)}
         className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full px-4 py-3 font-semibold text-white shadow-lg tap-target"
         style={{ background: "linear-gradient(135deg, var(--terracotta), var(--gold))" }}
-        aria-label="Open Istanbul AI"
+        aria-label={t("ai_widget_open_aria")}
       >
         ✨ AI
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="dialog" aria-modal="true" aria-label="Istanbul AI">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="dialog" aria-modal="true" aria-label={t("ai_widget_title")}>
           <div className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl sm:rounded-2xl card" style={{ background: "var(--surface)" }}>
             <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "var(--border)" }}>
-              <h2 className="font-display text-lg font-semibold">✨ Istanbul AI</h2>
-              <button onClick={() => setOpen(false)} className="tap-target rounded-full px-2 text-xl" aria-label="Close">
+              <h2 className="font-display text-lg font-semibold">{t("ai_widget_title")}</h2>
+              <button onClick={() => setOpen(false)} className="tap-target rounded-full px-2 text-xl" aria-label={t("ai_widget_close_aria")}>
                 ×
               </button>
             </div>
@@ -140,17 +150,21 @@ export default function AIWidget() {
               {turns.length === 0 && (
                 <div>
                   <p className="text-sm" style={{ color: "var(--muted)" }}>
-                    Ask about places, family activities, transport, prices, history, or Turkish phrases. Answers come only from this guide&apos;s own verified data.
+                    {t("ai_widget_intro")}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {quickPrompts.map((q) => (
                       <button
-                        key={q.label}
-                        onClick={() => (q.label.includes("Near") ? requestLocation((c) => setTurns((t) => [...t, { query: q.query, response: askIstanbulAI(q.query, { userCoords: c }) }])) : runQuery(q.query))}
+                        key={q.query}
+                        onClick={() =>
+                          q.query === "What's near me right now?"
+                            ? requestLocation((c) => setTurns((prev) => [...prev, { query: q.labels[locale], response: askIstanbulAI(q.query, { userCoords: c }, locale) }]))
+                            : runQuery(q.query, q.labels[locale])
+                        }
                         className="rounded-full border px-3 py-1.5 text-sm"
                         style={{ borderColor: "var(--border)" }}
                       >
-                        {q.label}
+                        {q.labels[locale]}
                       </button>
                     ))}
                   </div>
@@ -172,7 +186,7 @@ export default function AIWidget() {
                     )}
                     {turn.response.sourceNote && (
                       <p className="text-xs" style={{ color: "var(--muted)" }}>
-                        Source: {turn.response.sourceNote}
+                        {t("ai_widget_source_prefix")} {turn.response.sourceNote}
                       </p>
                     )}
                   </div>
@@ -193,19 +207,19 @@ export default function AIWidget() {
                 onClick={handleMic}
                 className="tap-target flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg"
                 style={{ background: listening ? "var(--terracotta)" : "var(--terracotta-light)", color: listening ? "white" : "var(--terracotta)" }}
-                aria-label={listening ? "Stop listening" : "Tap to speak"}
+                aria-label={listening ? t("ai_widget_mic_stop_aria") : t("ai_widget_mic_start_aria")}
               >
                 🎙️
               </button>
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="What can we visit near here with our daughter?"
+                placeholder={t("ai_widget_placeholder")}
                 className="tap-target flex-1 rounded-full border px-4 py-2 text-sm outline-none"
                 style={{ borderColor: "var(--border)", background: "var(--background)" }}
               />
               <button type="submit" className="tap-target rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ background: "var(--bosphorus)" }}>
-                Ask
+                {t("ai_widget_ask")}
               </button>
             </form>
           </div>
