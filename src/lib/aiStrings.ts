@@ -6,11 +6,13 @@
 // are already localized by the caller via localizePlace() before being
 // passed in — this file only supplies the assistant's own wording.
 //
-// Scope note: a few interpolated fragments still come from English-only
-// data files (fareTable, istanbulkart, museumPass, area.whyFamilies) — the
-// same "deep content stays English" boundary documented in
-// ./placeTranslations.ts. The assistant's own sentences around them are
-// fully localized either way.
+// Scope note: transport mode names/notes, Istanbulkart's descriptive text,
+// and fare-table labels are now translated too (see
+// ./transportTranslations.ts) — only the cited numeric/sourced facts
+// (fare values, card fee, source names) stay as published. museumPass and
+// area.whyFamilies are still English-only, the same "deep content stays
+// English" boundary documented in ./placeTranslations.ts. The assistant's
+// own sentences around all of this are fully localized either way.
 import { Locale } from "@/locales/translations";
 import { RegionGroup } from "@/data/types";
 

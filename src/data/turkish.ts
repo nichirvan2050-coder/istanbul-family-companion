@@ -10,7 +10,7 @@ export const turkishPhrases: TurkishPhrase[] = [
   { id: "thank-you", category: "basic", turkish: "Teşekkür ederim", english: "Thank you", kurdish: "سوپاس", arabic: "شكرًا", pronunciation: "teh-shek-KEUR eh-deh-rim" },
   { id: "please", category: "basic", turkish: "Lütfen", english: "Please", kurdish: "تکایە", arabic: "من فضلك", pronunciation: "LEUT-fen" },
   { id: "yes", category: "basic", turkish: "Evet", english: "Yes", kurdish: "بەڵێ", arabic: "نعم", pronunciation: "eh-VET" },
-  { id: "no", category: "basic", turkish: "Hayır", english: "No", kurdish: "نەخێر", arabic: "لا", pronunciation: "hah-YUHR" },
+  { id: "no", category: "basic", turkish: "Hayır", english: "No", kurdish: "نا", arabic: "لا", pronunciation: "hah-YUHR" },
   { id: "excuse-me", category: "basic", turkish: "Affedersiniz", english: "Excuse me", kurdish: "بەبورەیی", arabic: "لو سمحت", pronunciation: "ahf-feh-DEHR-see-niz" },
   { id: "sorry", category: "basic", turkish: "Özür dilerim", english: "Sorry", kurdish: "ببورە", arabic: "آسف", pronunciation: "eu-ZEUR dee-leh-rim" },
   { id: "goodbye", category: "basic", turkish: "Hoşça kalın", english: "Goodbye", kurdish: "بەخێر بچیت", arabic: "مع السلامة", pronunciation: "hosh-CHAH kah-luhn" },

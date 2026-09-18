@@ -23,11 +23,12 @@ import { activities } from "@/data/activities";
 import { stays } from "@/data/stays";
 import { stations } from "@/data/stations";
 import { turkishPhrases, needThisNowIds } from "@/data/turkish";
-import { fareTable, istanbulkart } from "@/data/transport";
+import { fareTable } from "@/data/transport";
 import { paidAttractions, museumPass } from "@/data/prices";
 import { Place, Station, TurkishPhrase, RegionGroup } from "@/data/types";
 import { haversineKm } from "@/lib/geo";
 import { localizePlace } from "@/data/placeTranslations";
+import { localizeIstanbulkart, localizeFareTable } from "@/data/transportTranslations";
 import { Locale } from "@/locales/translations";
 import { aiStrings, regionGroupLabels } from "@/lib/aiStrings";
 
@@ -242,7 +243,8 @@ function transportAnswer(query: string, locale: Locale): AIResponse {
   const s = aiStrings[locale];
   const q = query.toLowerCase();
   if (/istanbulkart/.test(q)) {
-    return { intent: "transport", text: s.istanbulkart(istanbulkart.whatIsIt, istanbulkart.cardFee.value, istanbulkart.cardFee.sourceName, istanbulkart.cardFee.lastVerified), cards: [] };
+    const ik = localizeIstanbulkart(locale);
+    return { intent: "transport", text: s.istanbulkart(ik.whatIsIt, ik.cardFee.value, ik.cardFee.sourceName, ik.cardFee.lastVerified), cards: [] };
   }
   const named = findNamedPlace(query);
   if (named && named.transport.length > 0) {
@@ -254,8 +256,11 @@ function transportAnswer(query: string, locale: Locale): AIResponse {
       cards: [placeToCard(named, locale)],
     };
   }
-  const row = fareTable.find((f) => q.includes(f.transport.toLowerCase().split(" ")[0]));
-  if (row) {
+  // Matched against the original English fare labels (so keyword search
+  // keeps working regardless of locale), then displayed via the localized row.
+  const rowIndex = fareTable.findIndex((f) => q.includes(f.transport.toLowerCase().split(" ")[0]));
+  if (rowIndex !== -1) {
+    const row = localizeFareTable(fareTable, locale)[rowIndex];
     return { intent: "transport", text: s.transportFareRow(row.transport, row.fare, row.fareType, row.sourceName), cards: [] };
   }
   return { intent: "transport", text: s.transportGeneric, cards: [] };

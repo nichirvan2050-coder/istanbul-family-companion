@@ -1,9 +1,13 @@
+"use client";
+
 import { Station } from "@/data/types";
 import { formatDistance, walkingMinutes } from "@/lib/geo";
+import { useLocale } from "@/lib/i18n";
 
 const modeIcon: Record<string, string> = { tram: "🚋", metro: "🚇", marmaray: "🚆", ferry: "⛴️", funicular: "🚡" };
 
 export default function StationCard({ station, distanceKm }: { station: Station; distanceKm?: number }) {
+  const { t } = useLocale();
   const icon = modeIcon[station.modes[0]] ?? "🚏";
   return (
     <a
@@ -27,7 +31,7 @@ export default function StationCard({ station, distanceKm }: { station: Station;
             {formatDistance(distanceKm)}
           </p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            ~{walkingMinutes(distanceKm)} min walk
+            ~{walkingMinutes(distanceKm)} {t("station_min_walk")}
           </p>
         </div>
       )}

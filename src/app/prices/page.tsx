@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { fareTable } from "@/data/transport";
 import { freeAttractions, paidAttractions, museumPass } from "@/data/prices";
 import { VerificationBadge } from "@/components/SourceTag";
 import { PageTitle } from "@/components/PageTitle";
+import FareTableSection from "@/components/FareTableSection";
 
 export const metadata = { title: "Tickets & Prices" };
 
@@ -16,38 +16,7 @@ export default function PricesPage() {
         Every changing figure below shows its source and the date it was checked. Treat 🟡 as a strong current estimate, not a live price.
       </p>
 
-      <section className="mt-6">
-        <h2 className="font-display text-lg font-semibold">🚋 Transport fares</h2>
-        <div className="mt-2 overflow-x-auto">
-          <table className="w-full min-w-[500px] border-collapse text-sm">
-            <thead>
-              <tr className="text-left" style={{ color: "var(--muted)" }}>
-                <th className="py-1 pr-2">Transport</th>
-                <th className="py-1 pr-2">Fare</th>
-                <th className="py-1 pr-2">Type</th>
-                <th className="py-1">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fareTable.map((row) => (
-                <tr key={row.transport} className="border-t" style={{ borderColor: "var(--border)" }}>
-                  <td className="py-2 pr-2 font-medium">{row.transport}</td>
-                  <td className="py-2 pr-2">{row.fare}</td>
-                  <td className="py-2 pr-2" style={{ color: "var(--muted)" }}>
-                    {row.fareType}
-                  </td>
-                  <td className="py-2">
-                    <VerificationBadge status={row.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Link href="/transport" className="mt-2 inline-block text-sm underline" style={{ color: "var(--bosphorus)" }}>
-          Full transport guide →
-        </Link>
-      </section>
+      <FareTableSection />
 
       <section className="mt-8 border-t pt-5" style={{ borderColor: "var(--border)" }}>
         <h2 className="font-display text-lg font-semibold">🆓 Free</h2>
