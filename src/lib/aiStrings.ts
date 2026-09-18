@@ -58,6 +58,7 @@ export interface AIStrings {
   free: string;
   paid: string;
   familyLevel: (level: "easy" | "moderate" | "difficult") => string;
+  walkingLevel: (level: "light" | "moderate" | "heavy") => string;
   morning: string;
   midday: string;
   afternoon: string;
@@ -107,6 +108,7 @@ const en: AIStrings = {
   free: "Free",
   paid: "Paid",
   familyLevel: (level) => level,
+  walkingLevel: (level) => level,
   morning: "Morning",
   midday: "Midday",
   afternoon: "Afternoon",
@@ -156,6 +158,7 @@ const ar: AIStrings = {
   free: "مجاني",
   paid: "مدفوع",
   familyLevel: (level) => (level === "easy" ? "سهل" : level === "moderate" ? "متوسط" : "صعب"),
+  walkingLevel: (level) => (level === "light" ? "خفيف" : level === "moderate" ? "متوسط" : "شاق"),
   morning: "الصباح",
   midday: "الظهيرة",
   afternoon: "بعد الظهر",
@@ -205,6 +208,7 @@ const ku: AIStrings = {
   free: "بەخۆڕایی",
   paid: "بەپارە",
   familyLevel: (level) => (level === "easy" ? "سادە" : level === "moderate" ? "مامناوەند" : "قورس"),
+  walkingLevel: (level) => (level === "light" ? "سووک" : level === "moderate" ? "مامناوەند" : "قورس"),
   morning: "بەیانی",
   midday: "نیوەڕۆ",
   afternoon: "دوای نیوەڕۆ",
