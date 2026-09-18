@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { itinerary } from "@/data/itinerary";
+import { localizeItineraryDay } from "@/data/itineraryTranslations";
 import { setTripStart, getTripStart } from "@/lib/trip";
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 
-const walkingConfig = { light: { emoji: "🟢", label: "Light" }, moderate: { emoji: "🟡", label: "Moderate" }, heavy: { emoji: "🔴", label: "Heavy" } };
-
 export default function PlanPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const walkingConfig = {
+    light: { emoji: "🟢", label: t("plan_walking_light") },
+    moderate: { emoji: "🟡", label: t("plan_walking_moderate") },
+    heavy: { emoji: "🔴", label: t("plan_walking_heavy") },
+  };
   const [start, setStart] = useState("");
 
   useEffect(() => {
@@ -26,7 +30,7 @@ export default function PlanPage() {
 
       <div className="card mt-4 flex items-center gap-3 p-3">
         <label className="text-sm font-medium" htmlFor="trip-start">
-          Trip start date
+          {t("plan_trip_start_date")}
         </label>
         <input
           id="trip-start"
@@ -42,33 +46,36 @@ export default function PlanPage() {
       </div>
 
       <ol className="mt-6 space-y-4 border-l-2 pl-4" style={{ borderColor: "var(--border)" }}>
-        {itinerary.map((day) => (
-          <li key={day.day} className="relative">
-            <span
-              className="absolute -left-[27px] flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
-              style={{ background: "var(--bosphorus)" }}
-            >
-              {day.day}
-            </span>
-            <Link href={`/plan/day-${day.day}`} className="card block p-4">
-              <h2 className="font-display text-lg font-semibold">{day.title}</h2>
-              <p className="text-sm" style={{ color: "var(--muted)" }}>
-                {day.subtitle}
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                {day.transport.map((t) => (
-                  <span key={t} className="rounded-full px-2 py-0.5" style={{ background: "var(--terracotta-light)", color: "var(--terracotta)" }}>
-                    {t}
+        {itinerary.map((rawDay) => {
+          const day = localizeItineraryDay(rawDay, locale);
+          return (
+            <li key={day.day} className="relative">
+              <span
+                className="absolute -left-[27px] flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ background: "var(--bosphorus)" }}
+              >
+                {day.day}
+              </span>
+              <Link href={`/plan/day-${day.day}`} className="card block p-4">
+                <h2 className="font-display text-lg font-semibold">{day.title}</h2>
+                <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  {day.subtitle}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                  {day.transport.map((tr) => (
+                    <span key={tr} className="rounded-full px-2 py-0.5" style={{ background: "var(--terracotta-light)", color: "var(--terracotta)" }}>
+                      {tr}
+                    </span>
+                  ))}
+                  <span style={{ color: "var(--muted)" }}>
+                    {walkingConfig[day.walking].emoji} {walkingConfig[day.walking].label} {t("plan_walking_suffix")}
                   </span>
-                ))}
-                <span style={{ color: "var(--muted)" }}>
-                  {walkingConfig[day.walking].emoji} {walkingConfig[day.walking].label} walking
-                </span>
-                {day.familyFriendly && <span>👨‍👩‍👧</span>}
-              </div>
-            </Link>
-          </li>
-        ))}
+                  {day.familyFriendly && <span>👨‍👩‍👧</span>}
+                </div>
+              </Link>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );

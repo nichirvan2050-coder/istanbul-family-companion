@@ -199,6 +199,37 @@ const en: Dict = {
   stay_transport: "Transport",
   stay_nearby: "Nearby",
   stay_view_booking: "View on Booking.com",
+
+  turkish_need_now_title: "I Need This Now",
+  turkish_need_now_subtitle: "The 6 phrases you'll reach for most",
+  turkish_search_placeholder: "Search: toilet, taxi, how much...",
+  turkish_all: "All",
+  turkish_no_match: "No phrases match that search.",
+  turkish_now_back: "← Turkish",
+  turkish_now_title: "🆘 I Need This Now",
+  turkish_now_subtitle: "The essentials, large and simple, for when you need them fast.",
+
+  saved_empty: "Nothing saved yet. Tap the ❤️ on any place, activity, stay, or Turkish phrase to keep it here — stored only on this device.",
+  saved_browse_places: "Browse places →",
+  saved_privacy: "Stored only in this browser — nothing is sent anywhere.",
+  saved_section_places: "Places",
+  saved_section_activities: "Activities",
+  saved_section_stays: "Stays",
+  saved_section_areas: "Areas",
+  saved_section_turkish: "My Turkish",
+  saved_clear_all: "Clear all saved items",
+
+  plan_trip_start_date: "Trip start date",
+  plan_walking_light: "Light",
+  plan_walking_moderate: "Moderate",
+  plan_walking_heavy: "Heavy",
+  plan_walking_suffix: "walking",
+
+  day_flexible: "Flexible",
+  day_flexible_note: "This day is intentionally flexible — use it to revisit a saved favorite or pick from the suggestions below.",
+  day_todays_turkish: "🇹🇷 Today's Turkish",
+  day_prev: "← Day",
+  day_next: "Day",
 };
 
 const ar: Dict = {
@@ -388,6 +419,37 @@ const ar: Dict = {
   stay_transport: "المواصلات",
   stay_nearby: "قريب",
   stay_view_booking: "عرض على Booking.com",
+
+  turkish_need_now_title: "أحتاج هذا الآن",
+  turkish_need_now_subtitle: "العبارات الست الأكثر استخدامًا",
+  turkish_search_placeholder: "ابحث: حمام، تاكسي، كم السعر...",
+  turkish_all: "الكل",
+  turkish_no_match: "لا توجد عبارات تطابق هذا البحث.",
+  turkish_now_back: "← التركية",
+  turkish_now_title: "🆘 أحتاج هذا الآن",
+  turkish_now_subtitle: "الأساسيات، بخط كبير وبسيط، لوقت الحاجة السريعة.",
+
+  saved_empty: "لا شيء محفوظ بعد. اضغط ❤️ على أي مكان أو نشاط أو إقامة أو عبارة تركية لحفظها هنا — تُخزَّن على هذا الجهاز فقط.",
+  saved_browse_places: "تصفّح الأماكن ←",
+  saved_privacy: "تُخزَّن فقط في هذا المتصفح — لا شيء يُرسل إلى أي مكان.",
+  saved_section_places: "الأماكن",
+  saved_section_activities: "الأنشطة",
+  saved_section_stays: "الإقامات",
+  saved_section_areas: "المناطق",
+  saved_section_turkish: "تركيتي",
+  saved_clear_all: "مسح كل العناصر المحفوظة",
+
+  plan_trip_start_date: "تاريخ بداية الرحلة",
+  plan_walking_light: "خفيف",
+  plan_walking_moderate: "متوسط",
+  plan_walking_heavy: "شاق",
+  plan_walking_suffix: "مشي",
+
+  day_flexible: "مرن",
+  day_flexible_note: "هذا اليوم مرن عن قصد — استخدمه لزيارة مكان محفوظ مفضل أو اختر من الاقتراحات أدناه.",
+  day_todays_turkish: "🇹🇷 تركية اليوم",
+  day_prev: "← اليوم",
+  day_next: "اليوم",
 };
 
 const ku: Dict = {
@@ -577,6 +639,37 @@ const ku: Dict = {
   stay_transport: "گواستنەوە",
   stay_nearby: "نزیک",
   stay_view_booking: "بینین لە Booking.com",
+
+  turkish_need_now_title: "ئێستا پێویستمە",
+  turkish_need_now_subtitle: "ئەو 6 دەستەواژەیەی زۆرترین پێویستت پێیان دەبێت",
+  turkish_search_placeholder: "بگەڕێ: تواڵێت، تاکسی، چەندە...",
+  turkish_all: "هەموو",
+  turkish_no_match: "هیچ دەستەواژەیەک لەگەڵ ئەم گەڕانە ناگونجێت.",
+  turkish_now_back: "← تورکی",
+  turkish_now_title: "🆘 ئێستا پێویستمە",
+  turkish_now_subtitle: "سەرەکییەکان، بە گەورە و سادە، بۆ کاتێک بە خێرایی پێویستت دەبن.",
+
+  saved_empty: "هێشتا هیچ شتێک هەڵنەگیراوە. ❤️ لەسەر هەر شوێن، چالاکی، نیشتەجێبوون، یان دەستەواژەیەکی تورکی دابگرە بۆ هەڵگرتنی لێرە — تەنها لەسەر ئەم ئامێرە هەڵدەگیرێت.",
+  saved_browse_places: "گەڕان بەناو شوێنەکاندا ←",
+  saved_privacy: "تەنها لەم وێبگەڕەدا هەڵدەگیرێت — هیچ شتێک بۆ هیچ شوێنێک نانێردرێت.",
+  saved_section_places: "شوێنەکان",
+  saved_section_activities: "چالاکییەکان",
+  saved_section_stays: "نیشتەجێبوونەکان",
+  saved_section_areas: "ناوچەکان",
+  saved_section_turkish: "تورکیم",
+  saved_clear_all: "سڕینەوەی هەموو شتە هەڵگیراوەکان",
+
+  plan_trip_start_date: "بەرواری دەستپێکردنی گەشت",
+  plan_walking_light: "سووک",
+  plan_walking_moderate: "مامناوەند",
+  plan_walking_heavy: "قورس",
+  plan_walking_suffix: "پیادەڕۆیی",
+
+  day_flexible: "ئازاد",
+  day_flexible_note: "ئەم ڕۆژە بە قەستە ئازادە — بەکاریبهێنە بۆ گەڕانەوە بۆ شوێنێکی هەڵگیراوی خۆشەویست یان هەڵبژاردنێک لە پێشنیارەکانی خوارەوە.",
+  day_todays_turkish: "🇹🇷 تورکیی ئەمڕۆ",
+  day_prev: "← ڕۆژی",
+  day_next: "ڕۆژی",
 };
 
 export const translations: Record<Locale, Dict> = { en, ar, ku };

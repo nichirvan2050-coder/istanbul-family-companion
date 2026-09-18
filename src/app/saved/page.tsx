@@ -34,10 +34,10 @@ export default function SavedPage() {
       <div className="mx-auto max-w-xl px-4 py-6">
         <h1 className="font-display text-2xl font-semibold">{t("saved_title")}</h1>
         <p className="mt-4 text-sm" style={{ color: "var(--muted)" }}>
-          Nothing saved yet. Tap the ❤️ on any place, activity, stay, or Turkish phrase to keep it here — stored only on this device.
+          {t("saved_empty")}
         </p>
         <Link href="/places" className="mt-4 inline-block text-sm underline" style={{ color: "var(--bosphorus)" }}>
-          Browse places →
+          {t("saved_browse_places")}
         </Link>
       </div>
     );
@@ -47,18 +47,18 @@ export default function SavedPage() {
     <div className="mx-auto max-w-xl px-4 py-6">
       <h1 className="font-display text-2xl font-semibold">{t("saved_title")}</h1>
       <p className="text-sm" style={{ color: "var(--muted)" }}>
-        Stored only in this browser — nothing is sent anywhere.
+        {t("saved_privacy")}
       </p>
 
       {places.length > 0 && (
-        <Section title="Places">
+        <Section title={t("saved_section_places")}>
           {places.map((p) => (
             <PlaceCard key={p!.id} place={p!} />
           ))}
         </Section>
       )}
       {activities.length > 0 && (
-        <Section title="Activities">
+        <Section title={t("saved_section_activities")}>
           {activities.map((a) => (
             <Link key={a!.id} href={`/activities/${a!.id}`} className="card block p-3">
               {a!.name}
@@ -67,7 +67,7 @@ export default function SavedPage() {
         </Section>
       )}
       {stays.length > 0 && (
-        <Section title="Stays">
+        <Section title={t("saved_section_stays")}>
           {stays.map((s) => (
             <Link key={s!.id} href={`/stays/${s!.id}`} className="card block p-3">
               {s!.name}
@@ -76,7 +76,7 @@ export default function SavedPage() {
         </Section>
       )}
       {areasSaved.length > 0 && (
-        <Section title="Areas">
+        <Section title={t("saved_section_areas")}>
           {areasSaved.map((a) => (
             <Link key={a!.id} href={`/areas/${a!.id}`} className="card block p-3">
               {a!.name}
@@ -85,7 +85,7 @@ export default function SavedPage() {
         </Section>
       )}
       {phrases.length > 0 && (
-        <Section title="My Turkish">
+        <Section title={t("saved_section_turkish")}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {phrases.map((p) => (
               <PhraseCard key={p!.id} phrase={p!} />
@@ -102,7 +102,7 @@ export default function SavedPage() {
         className="mt-8 text-sm underline"
         style={{ color: "var(--danger)" }}
       >
-        Clear all saved items
+        {t("saved_clear_all")}
       </button>
     </div>
   );

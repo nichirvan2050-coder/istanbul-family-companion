@@ -73,15 +73,15 @@ export const phraseById = (id: string) => turkishPhrases.find((p) => p.id === id
 export const phrasesByCategory = (category: TurkishPhrase["category"]) =>
   turkishPhrases.filter((p) => p.category === category);
 
-export const categoryLabels: Record<TurkishPhrase["category"], { en: string; icon: string }> = {
-  basic: { en: "Basic", icon: "👋" },
-  taxi: { en: "Taxi", icon: "🚕" },
-  transport: { en: "Transport", icon: "🚋" },
-  hotel: { en: "Hotel", icon: "🏨" },
-  restaurant: { en: "Restaurant", icon: "🍴" },
-  shopping: { en: "Shopping", icon: "🛍️" },
-  practical: { en: "Practical", icon: "🚻" },
-  emergency: { en: "I Need This Now", icon: "🆘" },
+export const categoryLabels: Record<TurkishPhrase["category"], { en: string; ar: string; ku: string; icon: string }> = {
+  basic: { en: "Basic", ar: "أساسيات", ku: "سەرەتایی", icon: "👋" },
+  taxi: { en: "Taxi", ar: "تاكسي", ku: "تاکسی", icon: "🚕" },
+  transport: { en: "Transport", ar: "المواصلات", ku: "گواستنەوە", icon: "🚋" },
+  hotel: { en: "Hotel", ar: "الفندق", ku: "هوتێل", icon: "🏨" },
+  restaurant: { en: "Restaurant", ar: "المطعم", ku: "چێشتخانە", icon: "🍴" },
+  shopping: { en: "Shopping", ar: "التسوق", ku: "بازاڕکردن", icon: "🛍️" },
+  practical: { en: "Practical", ar: "عملي", ku: "کاریگەر", icon: "🚻" },
+  emergency: { en: "I Need This Now", ar: "أحتاج هذا الآن", ku: "ئێستا پێویستمە", icon: "🆘" },
 };
 
 // "I Need This Now" quick-access set — a curated subset, not a new category.
